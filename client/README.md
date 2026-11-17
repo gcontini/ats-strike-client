@@ -64,7 +64,7 @@ LaTeX install (for the client).
 4. **Check it works:**
 
    ```bash
-   cv version                      # the server's version, and whether it talks protocol 2
+   cv version                      # each server's version, and whether it talks protocol 2
    cv submit-raw ../examples/posting.txt
    ```
 
@@ -208,8 +208,8 @@ the CV again.
 cv version
 ```
 
-Prints `version x.y.z`, then each server's version and whether it speaks this
-client's protocol (one that does not makes it exit 1). It answers even when the
+Prints `version x.y.z`, then the version of every server in `cv.toml` and
+whether it speaks this client's protocol (one that does not makes it exit 1). It answers even when the
 configuration is wrong or a server is down: the server line then says it was
 not checked. Every `-v`
 run prints the first line at startup.
@@ -218,7 +218,7 @@ run prints the first line at startup.
 
 | Flag | Applies to | What it does |
 |---|---|---|
-| `--server_ver NAME` | clipboard, watch, submit, reset, version | A `[servers.<name>]` section of `cv.toml`; repeatable. Each named one writes its own CV; the default still analyses. Default: the default server alone. |
+| `--server_ver NAME` | clipboard, watch, submit, reset | A `[servers.<name>]` section of `cv.toml`; repeatable. Each named one writes its own CV; the default still analyses. Default: the default server alone. |
 | `--server_ver NAME` | analysis, render, submit-raw | Once: the server to use instead of the default. |
 | `--out DIR` | clipboard, watch, submit | The output folder. Default: the current folder. |
 | `-o FILE` | submit-raw | Where to write one output: `.pdf`, `.json` or `.tex`. Repeatable. |

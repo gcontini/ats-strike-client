@@ -192,9 +192,8 @@ def build_parser(names: Sequence[str] = (), default: Optional[str] = None
                              parents=[common])
     add_servers_flag(reset, servers)
 
-    version = modes.add_parser("version", help="Print the version, and each server's.",
-                               parents=[common])
-    add_servers_flag(version, servers)
+    modes.add_parser("version", help="Print the version, and every server's.",
+                     parents=[common])
     return parser
 
 
@@ -206,11 +205,15 @@ ANALYSING_MODES = ("clipboard", "watch", "submit")
 def main(argv: Optional[List[str]] = None) -> int:
     # --config and --data-dir first, so --server_ver's help can list the servers.
     early, _ = global_options().parse_known_args(argv)
-    args = build_parser(*server_names(getattr(early, "config", None),
-                                      getattr(early, "data_dir", None))).parse_args(argv)
+    names, default = server_names(getattr(early, "config", None),
+                                  getattr(early, "data_dir", None))
+    args = build_parser(names, default).parse_args(argv)
     flag = lambda name: getattr(args, name, None)  # noqa: E731 — SUPPRESS defaults
-    named = args.server_ver
+    named = flag("server_ver")
     selected = named if isinstance(named, list) else [named] if named else []
+    if args.mode == "version":
+        # version checks every server cv.toml lists.
+        selected = names
     try:
         config = load_config(
             config_file=flag("config"),

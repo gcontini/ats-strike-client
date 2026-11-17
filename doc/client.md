@@ -282,8 +282,8 @@ deleted. After it, every posting is written from scratch.
 cv version
 ```
 
-Prints `version x.y.z`, then asks the default server — or each `--server_ver`
-one — for its version and its protocol, and says whether they can talk: a
+Prints `version x.y.z`, then asks every server in `cv.toml` for its version
+and its protocol, and says whether they can talk: a
 server on another protocol is one the client refuses to talk to, and `cv
 version` exits 1. The client's line is printed first and never depends on the
 rest, so it answers even when the configuration is wrong or a server is down;
@@ -312,7 +312,8 @@ code — and to `error/` when none did. The spreadsheet row points at the
 default server's PDF when there is one, else at the first one written.
 
 `analysis`, `render` and `submit-raw` take a single `--server_ver`, which
-replaces the default. `reset` and `version` take several. A name that is not
+replaces the default. `reset` takes several; `version` takes none, it checks
+them all. A name that is not
 a section of `cv.toml` stops the client before anything starts.
 
 ## Postings you have seen before
@@ -374,7 +375,7 @@ A session nobody came back for is kept for a day (the server's
 
 | Flag | Modes | What it does |
 |---|---|---|
-| `--server_ver NAME` | clipboard, watch, submit, reset, version | A `[servers.<name>]` section of `cv.toml`. Repeatable: each one named writes its own CV (or is reset, or checked). Default: the default server. `--server-ver` is the same flag. |
+| `--server_ver NAME` | clipboard, watch, submit, reset | A `[servers.<name>]` section of `cv.toml`. Repeatable: each one named writes its own CV (or is reset). Default: the default server. `--server-ver` is the same flag. |
 | `--server_ver NAME` | analysis, render, submit-raw | Once: the server to use instead of the default. |
 | `--out DIR` | clipboard, watch, submit | The output folder (`working/`, `error/`, `discarded/`, `CV/`). Default: the current folder. |
 | `--in DIR` | watch | The folder to watch. Default: `./incoming`, created if missing. |

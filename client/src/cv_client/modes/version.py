@@ -1,10 +1,9 @@
 """``cv version`` — this build, and whether each server is one it can talk to.
 
 The client's own version is printed before anything else is read, so a broken
-configuration or a server that is down never stops that answer. Each server —
-the ``--server_ver`` ones, else the default — is then asked once; only one
-that speaks another protocol is a failure, because that is the one thing the
-check can prove.
+configuration or a server that is down never stops that answer. Every server
+``cv.toml`` lists is then asked once; only one that speaks another protocol is
+a failure, because that is the one thing the check can prove.
 """
 
 from __future__ import annotations

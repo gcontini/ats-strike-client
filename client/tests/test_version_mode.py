@@ -54,6 +54,21 @@ def test_each_selected_server_is_checked_and_another_protocol_exits_one(
     assert "refuses to talk to it" in out[2]
 
 
+def test_cv_version_checks_every_server_cv_toml_lists(tmp_path, monkeypatch, capsys):
+    for name in ("v11", "v05", "v20"):
+        make_server(tmp_path, name)
+    write_cv_toml(tmp_path, ["v11", "v05", "v20"], default="v11")
+    monkeypatch.delenv("ATS_CONFIG", raising=False)
+    _serving(monkeypatch, {"http://v11.invalid": 2, "http://v05.invalid": 1,
+                           "http://v20.invalid": 2})
+
+    assert cli.main(["version", "--data-dir", str(tmp_path)]) == 1
+
+    out = capsys.readouterr().out.splitlines()
+    assert out[0] == f"version {__version__}"
+    assert [line.split(":")[0] for line in out[1:]] == ["server v11", "server v05", "server v20"]
+
+
 def test_an_unreachable_server_is_not_a_failure(monkeypatch, capsys, config):
     def refuse(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("refused")
