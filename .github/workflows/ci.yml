@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push makes the previous run's artifacts obsolete; do not pay for them.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Every job here only reads the repo, builds and tests — none of them talk
+# to the GitHub API.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true   # contracts/ is the ats-strike-contract submodule.
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv sync --frozen
+      - run: uv run pytest -q
+
+  # The binary against a running server is checked in ats-integration-tests,
+  # the one checkout that holds both; here it only has to build and start.
+  build:
+    # PyInstaller does not cross-compile: each binary is built on its own OS.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true   # contracts/ is the ats-strike-contract submodule.
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv sync --frozen
+
+      # PyInstaller re-analyses every dependency from scratch otherwise; the
+      # key carries the spec and the lock because either one invalidates it.
+      - name: Cache the PyInstaller analysis
+        uses: actions/cache@v6
+        with:
+          path: build
+          key: pyinstaller-${{ matrix.os }}-${{ hashFiles('uv.lock', 'client/packaging/cv.spec') }}
+
+      - name: Build the executable
+        run: uv run --with pyinstaller pyinstaller --noconfirm client/packaging/cv.spec
+
+      - name: Check it runs
+        run: |
+          ./dist/cv --help
+          ./dist/cv version
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: binary-${{ matrix.os }}
+          path: dist/cv*
+          retention-days: 30
+          if-no-files-found: error

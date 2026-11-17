@@ -1,0 +1,27 @@
+# --- Secrets ----------------------------------------------------------------
+# The client's configuration: a server folder's server.toml holds a bearer token.
+cv.toml
+server.toml
+
+# --- Your data --------------------------------------------------------------
+# The fictional set in examples/candidate/ is committed; yours is not. Keep
+# your real files next to the client binary, outside the checkout.
+/candidate_profile.json
+/candidate_data.json
+/candidate_preferences.md
+/candidate_signature.png
+ats-strike-data
+
+# --- Python -----------------------------------------------------------------
+.venv/
+.venv_win/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
+build/
+dist/
+
+.vscode
