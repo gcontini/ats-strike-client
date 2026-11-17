@@ -1,8 +1,9 @@
 # PyInstaller spec for the ats-strike client.
 #
-#     uv run --with pyinstaller pyinstaller client/packaging/cv.spec
+#     uv run --with pyinstaller pyinstaller --noconfirm \
+#         --distpath build/dist --workpath build/pyinstaller_cache client/packaging/cv.spec
 #
-# Produces dist/cv (or dist/cv.exe). Build it on the platform
+# Produces build/dist/cv (or build/dist/cv.exe). Build it on the platform
 # you are building for — PyInstaller does not cross-compile.
 #
 # Why PyInstaller and not Cython: Cython compiles modules to C extensions but

@@ -356,7 +356,7 @@ def make_job(parent: Path, name: str = "Acme_Corp_Head_of_IT", *, should_apply="
     """
     folder = parent / name
     folder.mkdir(parents=True)
-    (folder / "jd.txt").write_text(JD_TEXT, encoding="utf-8")
+    (folder / "job_description.txt").write_text(JD_TEXT, encoding="utf-8")
     if with_analysis:
         (folder / "analysis.json").write_text(
             analysis(should_apply=should_apply).model_dump_json(), encoding="utf-8")

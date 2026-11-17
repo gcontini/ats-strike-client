@@ -8,7 +8,7 @@ where it goes out. :func:`classify` only reads the folder for it.
 The one file this package adds to a job folder is ``approval_status.txt``: what
 you decided about a posting that needed you — or ``PENDING``, for one that
 ``clipboard`` or ``submit`` is asking you about and nobody has answered yet.
-Everything else — ``jd.txt``, ``analysis.json``, the CV files, ``log.log`` —
+Everything else — ``job_description.txt``, ``analysis.json``, the CV files, ``log.log`` —
 is what the rest of the client already writes.
 
 A folder that already holds its CV is written like any other: each server is

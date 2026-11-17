@@ -53,12 +53,12 @@ def test_a_new_job_never_replaces_one_in_flight(ws):
     """A CV is written while the next posting is filed: a clash of names must
     not delete the folder that got there first."""
     first = ws.new_job("Acme Corp", "Head of IT")
-    (first / "jd.txt").write_text("the first posting")
+    (first / "job_description.txt").write_text("the first posting")
     second = ws.new_job("Acme Corp", "Head of IT")
 
     assert first.name == "Acme_Corp_Head_of_IT"
     assert second.name == "Acme_Corp_Head_of_IT_2"
-    assert (first / "jd.txt").read_text() == "the first posting"
+    assert (first / "job_description.txt").read_text() == "the first posting"
     assert second.is_dir() and not any(second.iterdir())
 
 
@@ -99,12 +99,12 @@ def test_error_replaces_a_folder_of_the_same_name(ws):
     ws.to_error(first)
     second = ws.working / stamped
     second.mkdir()
-    (second / "jd.txt").write_text("fresh")
+    (second / "job_description.txt").write_text("fresh")
 
     failed = ws.to_error(second)
 
     assert [p.name for p in failed.parent.iterdir()] == [stamped]
-    assert sorted(p.name for p in failed.iterdir()) == ["jd.txt"], "not nested, not merged"
+    assert sorted(p.name for p in failed.iterdir()) == ["job_description.txt"], "not nested, not merged"
 
 
 def test_error_adds_no_timestamp(ws):
@@ -228,7 +228,7 @@ def test_anything_else_is_skipped_with_a_line(job, v05, location, type):
     log = JobLog()
     assert JobFiles(job, v05).store(item(location, type, "a.json"), log) is None
     assert "skipped" in log.lines[0] and f"{location}/{type}" in log.lines[0]
-    assert sorted(p.name for p in job.iterdir()) == ["analysis.json", "jd.txt"]
+    assert sorted(p.name for p in job.iterdir()) == ["analysis.json", "job_description.txt"]
 
 
 @pytest.mark.parametrize("name", ["../escape.json", "steps/../../escape.json",
@@ -249,9 +249,9 @@ def test_what_a_server_is_sent_is_the_posting_its_analysis_and_its_own_files(job
     (job / "log.log").write_text("not sent")
 
     assert sorted(JobFiles(job, v05).outgoing()) == [
-        "analysis.json", "cv.json", "jd.txt", "steps/key_points.json"]
+        "analysis.json", "cv.json", "job_description.txt", "steps/key_points.json"]
 
 
 def test_a_bare_posting_is_sent_as_jd_txt_alone(tmp_path, v05):
     job = make_job(tmp_path / "working", with_analysis=False)
-    assert list(JobFiles(job, v05).outgoing()) == ["jd.txt"]
+    assert list(JobFiles(job, v05).outgoing()) == ["job_description.txt"]

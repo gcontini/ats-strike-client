@@ -67,7 +67,7 @@ def test_it_only_writes_the_cv(here, config, api, apis):
     submit_raw.run(config, here, [])
 
     assert api.calls == ["create_cv", "events", "acknowledge"]
-    assert api.seen_job == {"jd.txt": JD_TEXT.encode()}
+    assert api.seen_job == {"job_description.txt": JD_TEXT.encode()}
     assert sorted(p.name for p in here.parent.iterdir()) == ["posting.pdf", "posting.txt"]
 
 

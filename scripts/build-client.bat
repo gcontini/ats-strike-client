@@ -3,7 +3,7 @@ rem Build the ats-strike client executable and install it into ats-strike-data\g
 rem
 rem The Windows counterpart of build-client.sh. The spec and the build command
 rem are the ones CI uses (.github/workflows/ci.yml, job "build"). PyInstaller
-rem does not cross-compile, so this produces dist\cv.exe for Windows.
+rem does not cross-compile, so this produces build\dist\cv.exe for Windows.
 rem
 rem No `uv sync` first: `uv run` syncs what it needs.
 rem
@@ -20,12 +20,12 @@ rem A Windows virtualenv of its own, so it never clobbers the Linux .venv of a
 rem checkout shared between the two systems.
 set "UV_PROJECT_ENVIRONMENT=.venv_win"
 
-uv run --with pyinstaller pyinstaller --noconfirm client\packaging\cv.spec || goto :fail
+uv run --with pyinstaller pyinstaller --noconfirm --distpath build\dist --workpath build\pyinstaller_cache client\packaging\cv.spec || goto :fail
 
-dist\cv.exe --help >nul || goto :fail
-dist\cv.exe version || goto :fail
+build\dist\cv.exe --help >nul || goto :fail
+build\dist\cv.exe version || goto :fail
 
-copy /y dist\cv.exe "%DEST%\cv.exe" >nul || goto :fail
+copy /y build\dist\cv.exe "%DEST%\cv.exe" >nul || goto :fail
 
 rem From inside the folder, so its cv.toml is the one picked up.
 pushd "%DEST%" || goto :fail

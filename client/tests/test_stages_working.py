@@ -51,7 +51,7 @@ def test_no_goes_straight_to_discarded(processor, workspace):
 
     [folder] = workspace.discarded.glob("*/Acme_Corp_Head_of_IT")
     assert folder.parent.name == day()
-    assert names(folder) == ["analysis.json", "jd.txt", "log.log"]
+    assert names(folder) == ["analysis.json", "job_description.txt", "log.log"]
     assert not any(workspace.working.iterdir())
     assert processor.generations["v11"].empty() and processor.approvals.empty()
 
@@ -60,7 +60,7 @@ def test_yes_is_queued_for_its_cv_and_marks_nothing(processor, workspace):
     folder = submit(processor, should_apply="YES")
 
     assert folder.parent == workspace.working
-    assert names(folder) == ["analysis.json", "jd.txt", "log.log"]
+    assert names(folder) == ["analysis.json", "job_description.txt", "log.log"]
     assert queued(processor.generations["v11"]) == [folder]
     assert processor.approvals.empty()
 
@@ -189,7 +189,7 @@ def test_a_held_posting_waits_for_you_whatever_its_analysis_says(processor, work
     folder = hold(processor, should_apply=should_apply)
 
     assert folder.parent == workspace.working
-    assert names(folder) == ["analysis.json", "approval_status.txt", "jd.txt", "log.log"]
+    assert names(folder) == ["analysis.json", "approval_status.txt", "job_description.txt", "log.log"]
     assert (folder / "approval_status.txt").read_text().strip() == "PENDING"
     assert "waiting for your answer" in (folder / "log.log").read_text()
     assert processor.generations["v11"].empty() and processor.approvals.empty(), \

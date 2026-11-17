@@ -11,18 +11,18 @@ ones CI uses (`.github/workflows/ci.yml`, job `build`).
 1. Build:
 
    ```bash
-   uv run --with pyinstaller pyinstaller --noconfirm client/packaging/cv.spec
+   uv run --with pyinstaller pyinstaller --noconfirm --distpath build/dist --workpath build/pyinstaller_cache client/packaging/cv.spec
    ```
 
    No `uv sync` first: `uv run` syncs what it needs. The output is
-   `dist/cv`. PyInstaller does not cross-compile, so this
+   `build/dist/cv`. PyInstaller does not cross-compile, so this
    produces a Linux binary here.
 
 2. Check it starts:
 
    ```bash
-   ./dist/cv --help >/dev/null
-   ./dist/cv version
+   ./build/dist/cv --help >/dev/null
+   ./build/dist/cv version
    ```
 
 3. Copy it over every `cv` executable that is already there, in
@@ -31,7 +31,7 @@ ones CI uses (`.github/workflows/ci.yml`, job `build`).
 
    ```bash
    for target in ats-strike-data/*/cv; do
-     [ -f "$target" ] && cp dist/cv "$target" && chmod +x "$target" && echo "installed $target"
+     [ -f "$target" ] && cp build/dist/cv "$target" && chmod +x "$target" && echo "installed $target"
    done
    ```
 
@@ -44,7 +44,7 @@ ones CI uses (`.github/workflows/ci.yml`, job `build`).
    done
    ```
 
-Report the version each one printed. `dist/cv` is the build output itself, so
+Report the version each one printed. `build/dist/cv` is the build output itself, so
 it is already current.
 Touch nothing else in those folders: they hold the user's own data, `cv.toml`
 and the server folders; `cv.toml` holds bearer tokens. Binaries under an

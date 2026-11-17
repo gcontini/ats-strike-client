@@ -118,7 +118,7 @@ def test_a_broken_stream_raises_with_no_status_after_what_it_delivered():
 def test_a_cv_job_is_sent_under_its_session_id():
     seen: list = []
     api = HttpApi("http://server.invalid", client=_server(seen))
-    api.create_cv({}, {"jd.txt": b"posting"}, {}, "abc123")
+    api.create_cv({}, {"job_description.txt": b"posting"}, {}, "abc123")
     assert seen[0].headers["x-request-id"] == "abc123"
 
 
@@ -126,11 +126,11 @@ def test_every_file_is_a_part_named_by_its_path_and_settings_go_as_json():
     seen: list = []
     api = HttpApi("http://server.invalid", client=_server(seen))
     api.create_cv({"candidate_profile.json": b"{}", "cache/steps/pool.json": b"[]"},
-                  {"jd.txt": b"posting", "steps/key_points.json": b"[]"},
+                  {"job_description.txt": b"posting", "steps/key_points.json": b"[]"},
                   {"pages": 2, "extra_body": {"cv": {"temperature": 0.4}}}, "abc123")
     body = seen[0].content
     for part, name in (("pack", "candidate_profile.json"), ("pack", "cache/steps/pool.json"),
-                       ("job", "jd.txt"), ("job", "steps/key_points.json")):
+                       ("job", "job_description.txt"), ("job", "steps/key_points.json")):
         assert f'name="{part}"; filename="{name}"'.encode() in body, name
     settings = body.split(b'name="settings"\r\n\r\n', 1)[1].split(b"\r\n", 1)[0]
     assert json.loads(settings) == {"pages": 2, "extra_body": {"cv": {"temperature": 0.4}}}
@@ -139,7 +139,7 @@ def test_every_file_is_a_part_named_by_its_path_and_settings_go_as_json():
 def test_no_settings_means_no_settings_part():
     seen: list = []
     api = HttpApi("http://server.invalid", client=_server(seen))
-    api.create_cv({}, {"jd.txt": b"posting"}, {}, "abc123")
+    api.create_cv({}, {"job_description.txt": b"posting"}, {}, "abc123")
     assert b'name="settings"' not in seen[0].content
 
 

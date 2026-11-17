@@ -50,7 +50,7 @@ class ByFirstLine(FakeApi):
 
     def analyze(self, pack, job, settings):
         self._record("analyze")
-        company = job["jd.txt"].decode().split("\n", 1)[0]
+        company = job["job_description.txt"].decode().split("\n", 1)[0]
         return envelope(Analysed(analysis=analysis(company_name=company,
                                                    should_apply="YES").model_dump()))
 

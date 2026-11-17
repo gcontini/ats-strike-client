@@ -12,7 +12,7 @@ from cv_client.cvjob import session_id, write_cv
 
 from conftest import JD_TEXT, LOG_LINE, PDF, TOTAL_LINE, render_session
 
-JOB = {"jd.txt": JD_TEXT.encode()}
+JOB = {"job_description.txt": JD_TEXT.encode()}
 
 
 def follow(api, server, job=JOB, **kw):
@@ -25,15 +25,15 @@ def follow(api, server, job=JOB, **kw):
 def test_a_posting_is_its_own_session():
     """The same text, the same session; another text, another one. A hex
     SHA-256 is 64 characters, exactly what the server takes as an id."""
-    assert session_id(JOB["jd.txt"]) == session_id(JD_TEXT.encode())
-    assert session_id(JOB["jd.txt"]) != session_id(JOB["jd.txt"] + b" ")
-    assert len(session_id(JOB["jd.txt"])) == 64
+    assert session_id(JOB["job_description.txt"]) == session_id(JD_TEXT.encode())
+    assert session_id(JOB["job_description.txt"]) != session_id(JOB["job_description.txt"] + b" ")
+    assert len(session_id(JOB["job_description.txt"])) == 64
 
 
 def test_the_pack_the_job_and_the_settings_are_sent_under_the_session_id(api, server):
     server = replace(server, settings={"pages": 2})
     follow(api, server)
-    assert api.seen_request_id == session_id(JOB["jd.txt"])
+    assert api.seen_request_id == session_id(JOB["job_description.txt"])
     assert api.seen_job == JOB
     assert api.seen_settings == {"pages": 2}
     assert "candidate_profile.json" in api.seen_pack
@@ -67,7 +67,7 @@ def test_a_failed_job_is_acknowledged_then_raised_with_its_cause(api, server):
         follow(api, server)
     assert failure.value.status == 504
     assert "budget_exceeded" in str(failure.value)
-    assert failure.value.request_id == session_id(JOB["jd.txt"])
+    assert failure.value.request_id == session_id(JOB["job_description.txt"])
     assert api.calls[-1] == "acknowledge"
 
 

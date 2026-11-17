@@ -54,21 +54,21 @@ jobs:
       - name: Cache the PyInstaller analysis
         uses: actions/cache@v6
         with:
-          path: build
+          path: build/pyinstaller_cache
           key: pyinstaller-${{ matrix.os }}-${{ hashFiles('uv.lock', 'client/packaging/cv.spec') }}
 
       - name: Build the executable
-        run: uv run --with pyinstaller pyinstaller --noconfirm client/packaging/cv.spec
+        run: uv run --with pyinstaller pyinstaller --noconfirm --distpath build/dist --workpath build/pyinstaller_cache client/packaging/cv.spec
 
       - name: Check it runs
         run: |
-          ./dist/cv --help
-          ./dist/cv version
+          ./build/dist/cv --help
+          ./build/dist/cv version
         shell: bash
 
       - uses: actions/upload-artifact@v7
         with:
           name: binary-${{ matrix.os }}
-          path: dist/cv*
+          path: build/dist/cv*
           retention-days: 30
           if-no-files-found: error

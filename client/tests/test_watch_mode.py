@@ -31,7 +31,7 @@ class ByFirstLine(FakeApi):
 
     def analyze(self, pack, job, settings):
         self._record("analyze")
-        company, should_apply = job["jd.txt"].decode().split("\n", 1)[0].split("|")
+        company, should_apply = job["job_description.txt"].decode().split("\n", 1)[0].split("|")
         return envelope(Analysed(analysis=analysis(company_name=company,
                                                    should_apply=should_apply).model_dump()))
 

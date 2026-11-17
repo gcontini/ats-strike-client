@@ -37,7 +37,7 @@ def test_json_goes_to_stdout_and_nothing_is_detected(posting, config, api, apis,
 
     assert json.loads(capsys.readouterr().out) == analysis().model_dump(exclude_unset=True)
     assert api.calls == ["analyze"]
-    assert api.seen_job == {"jd.txt": JD_TEXT.encode()}
+    assert api.seen_job == {"job_description.txt": JD_TEXT.encode()}
     assert not (tmp_path / "out").exists(), "json writes no folder"
 
 
@@ -64,8 +64,8 @@ def test_folder_holds_the_posting_and_its_analysis_as_watch_takes_them(posting, 
 
     assert sorted(p.name for p in out.iterdir()) == [JOB], "no dot folder left behind"
     folder = out / JOB
-    assert sorted(p.name for p in folder.iterdir()) == ["analysis.json", "jd.txt"]
-    assert (folder / "jd.txt").read_text() == JD_TEXT
+    assert sorted(p.name for p in folder.iterdir()) == ["analysis.json", "job_description.txt"]
+    assert (folder / "job_description.txt").read_text() == JD_TEXT
     assert classify(folder)[0] != "error"
 
 
@@ -77,7 +77,7 @@ def test_a_folder_of_the_same_name_is_replaced(posting, config, apis, tmp_path):
     analysis_mode.run(config, posting, out, output_format="folder")
 
     assert sorted(p.name for p in out.iterdir()) == [JOB]
-    assert sorted(p.name for p in (out / JOB).iterdir()) == ["analysis.json", "jd.txt"]
+    assert sorted(p.name for p in (out / JOB).iterdir()) == ["analysis.json", "job_description.txt"]
 
 
 def test_a_half_written_folder_from_a_crashed_run_is_cleared(posting, config, apis, tmp_path):
@@ -88,7 +88,7 @@ def test_a_half_written_folder_from_a_crashed_run_is_cleared(posting, config, ap
     analysis_mode.run(config, posting, out, output_format="folder")
 
     assert sorted(p.name for p in out.iterdir()) == [JOB]
-    assert sorted(p.name for p in (out / JOB).iterdir()) == ["analysis.json", "jd.txt"]
+    assert sorted(p.name for p in (out / JOB).iterdir()) == ["analysis.json", "job_description.txt"]
 
 
 def test_a_missing_out_folder_is_created(posting, config, apis, tmp_path):

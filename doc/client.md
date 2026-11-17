@@ -121,14 +121,14 @@ What you can drop:
   `error/` with a `.log` beside it. Once its analysis is filed, the file is
   deleted from `--in`. Any other file — a PDF, a `.docx` — goes to `error/`
   with nothing sent: paste its text into a `.txt`.
-- **A folder** holding `jd.txt` and a valid `analysis.json` — one from `CV/`,
+- **A folder** holding `job_description.txt` and a valid `analysis.json` — one from `CV/`,
   `discarded/` or `error/`, for instance. Detection and analysis are skipped:
   it is copied into `working/` under its company and title, removed from
   `--in`, and goes where its own files say (the table under *Startup*). One
   that already holds its CVs is sent to each server with what that server
   stored there (`v11/cv.json`, …), and the server renders it again — one
   LaTeX compile, no model call, and no new spreadsheet row, because a
-  `cv_*.pdf` was already there. A folder with no `jd.txt`, or whose
+  `cv_*.pdf` was already there. A folder with no `job_description.txt`, or whose
   `analysis.json` does not validate, goes to `error/` with a `log.log` inside
   saying why.
 
@@ -167,7 +167,7 @@ files say, before anything new is read. The rules are tried in this order:
 
 | The folder holds | It goes to |
 |---|---|
-| no `jd.txt`, or no valid `analysis.json` | `error/` |
+| no `job_description.txt`, or no valid `analysis.json` | `error/` |
 | no `approval_status.txt` | by `should_apply`: YES to the CV queue, CHECK to you, NO to `discarded/` |
 | `approval_status.txt` saying `APPROVED` | the CV queue |
 | `approval_status.txt` saying `DISCARDED` | `discarded/` |
@@ -208,7 +208,7 @@ cv submit posting.txt analysis.json --out ~/applications
 With an `analysis.json` for the posting — from an earlier run's folder, say —
 detection and analysis are skipped and it goes straight to the CV; you are
 still asked first, unless `--yes`. Both are copied into the job folder as
-`jd.txt` and `analysis.json`, so the analysis you passed is the one delivered
+`job_description.txt` and `analysis.json`, so the analysis you passed is the one delivered
 beside the CV. One that does not validate stops the command before anything is
 sent or written.
 
@@ -242,7 +242,7 @@ by the default server, or by the one `--server_ver` names — then the default
 is not used at all. That server folder needs `candidate_profile.json` and
 `candidate_preferences.md`, and it costs one model call. With `--output-format json` (the default) the analysis is printed on
 stdout — nothing else is, so it pipes straight into `jq`. With `folder` it
-writes `<Company>_<Title>/` holding `jd.txt` and `analysis.json` into `--out`,
+writes `<Company>_<Title>/` holding `job_description.txt` and `analysis.json` into `--out`,
 which defaults to `incoming/` under `--data-dir` (or the current folder): the
 shape `watch` takes from its input folder, and the folder it watches by
 default. A folder of the same name is replaced. It is written as
@@ -379,7 +379,7 @@ A session nobody came back for is kept for a day (the server's
 | `--out DIR` | clipboard, watch, submit | The output folder (`working/`, `error/`, `discarded/`, `CV/`). Default: the current folder. |
 | `--in DIR` | watch | The folder to watch. Default: `./incoming`, created if missing. |
 | `--in FILE` | analysis | The posting to analyse. Required. |
-| `--output-format json\|folder` | analysis | `json`: print the analysis on stdout. `folder`: write `<Company>_<Title>/` with `jd.txt` and `analysis.json` into `--out`, replacing one of the same name. Default `json`. |
+| `--output-format json\|folder` | analysis | `json`: print the analysis on stdout. `folder`: write `<Company>_<Title>/` with `job_description.txt` and `analysis.json` into `--out`, replacing one of the same name. Default `json`. |
 | `--out DIR` | analysis | Where `--output-format folder` writes. Default: `<data-dir>/incoming`, created if missing. |
 | `--cover-letter no\|yes\|letter_only` | clipboard, watch, submit | Also write a cover letter, or write *only* one. The default server writes it. Default `no`. |
 | `--yes` | clipboard, watch, submit | Submit every valid posting without asking. Unattended runs spend tokens on their own. A posting already applied to, discarded or in flight is skipped, still without asking. In `watch` it only stops the questions: YES postings get their CV, NO postings are discarded, CHECK postings wait in `working/` for a run without `--yes`. |
@@ -520,7 +520,7 @@ subfolder.
 │           ├── cv_jordan_rivera_head_of_it.pdf       the default server's CV
 │           ├── cv_jordan_rivera_head_of_it_v05.pdf   any other server's: its name at the end
 │           ├── analysis.json            match score, salary, skills, gaps
-│           ├── jd.txt                   the posting, whatever the file was called
+│           ├── job_description.txt                   the posting, whatever the file was called
 │           ├── approval_status.txt      your answer, when you were asked
 │           ├── cover_letter.txt         with --cover-letter
 │           ├── log.log                  every step, and each server's own lines
@@ -547,7 +547,7 @@ lands, for server `S` with folder `F`:
 | anything this client does not know, or a name that would leave its folder | skipped, with a line in `log.log` |
 
 After the PDF, the server folder's top-level images are copied into `<job>/S/`
-too, so `cv.tex` there compiles by hand. A server is sent `jd.txt`,
+too, so `cv.tex` there compiles by hand. A server is sent `job_description.txt`,
 `analysis.json` and everything in its own subfolder — which is how a folder
 that already holds its CV is rendered rather than written again.
 
@@ -618,7 +618,7 @@ the client has saved the files, or for a day at most, and keeps nothing else.
 | `429` / `all job slots are busy` | The server is at capacity. Try again shortly. |
 | `[clipboard] ✗ not a job description (412 chars, nothing sent)` | What you copied is a fragment. Nothing was sent anywhere. |
 | A posting you wanted lands in `error/` | Read the `.log` beside it. A wrong "not a job description" verdict usually means the copy grabbed only part of the page. |
-| A folder you dropped lands in `error/` | It needs `jd.txt` and a valid `analysis.json`. The `log.log` inside it says which was missing. |
+| A folder you dropped lands in `error/` | It needs `job_description.txt` and a valid `analysis.json`. The `log.log` inside it says which was missing. |
 | You need more than the error line | Its `log.log` has every line each server logged for the job, under the server's name. Beyond that, the server's own log has it under the request id the error names. |
 | `working/` is not empty | A previous run stopped mid-job, a CV was still queued when you pressed `q`, or a posting waits for your answer (CHECK, or `PENDING`). `watch` picks everything up by itself at startup (see its *Startup* table); `clipboard` offers to resume or clean. |
 | The client died but the job was running | Run the same posting again: the server replays the run instead of writing a new CV. `--new` writes it again. |

@@ -97,7 +97,7 @@ def test_yes_queues_its_cv_and_keeps_your_answer(api, server, processor, workspa
     assert intake.take(JD_TEXT, "clipboard") is True
     [folder] = workspace.working_jobs()
     assert approval(folder) == "APPROVED"
-    assert (folder / "jd.txt").read_text() == JD_TEXT
+    assert (folder / "job_description.txt").read_text() == JD_TEXT
     assert processor.generations["v11"].get_nowait() == folder
     assert api.calls == ["detect", "analyze"], "the CV is the CV writer's to write"
     log = (folder / "log.log").read_text()

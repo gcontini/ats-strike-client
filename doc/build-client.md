@@ -5,12 +5,12 @@ virtualenv, no install step.
 
 ```bash
 uv sync
-uv run --with pyinstaller pyinstaller --noconfirm client/packaging/cv.spec
-./dist/cv --help
-./dist/cv version
+uv run --with pyinstaller pyinstaller --noconfirm --distpath build/dist --workpath build/pyinstaller_cache client/packaging/cv.spec
+./build/dist/cv --help
+./build/dist/cv version
 ```
 
-That produces `dist/cv` (or `dist/cv.exe` on Windows).
+That produces `build/dist/cv` (or `build/dist/cv.exe` on Windows).
 
 ## What the spec does
 
@@ -48,7 +48,7 @@ flowchart TB
         direction TB
         U["uv sync --frozen"] --> CACHE["restore the PyInstaller<br/>analysis cache<br/><i>key: uv.lock + the spec</i>"]
         CACHE --> BUILD["pyinstaller cv.spec"]
-        BUILD --> HELP["./dist/cv --help<br/>./dist/cv version"]
+        BUILD --> HELP["./build/dist/cv --help<br/>./build/dist/cv version"]
         HELP --> ART["upload-artifact<br/>the bare binary"]
     end
 ```

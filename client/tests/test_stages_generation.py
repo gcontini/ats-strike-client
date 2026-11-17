@@ -58,7 +58,7 @@ def test_a_cv_is_delivered_with_everything_needed_to_render_it_again(
 
     done = delivered(workspace)
     assert sorted(p.name for p in done.iterdir()) == [
-        "analysis.json", f"{STEM}.pdf", "jd.txt", "log.log", "v11"]
+        "analysis.json", f"{STEM}.pdf", "job_description.txt", "log.log", "v11"]
     assert sorted(p.relative_to(done / "v11").as_posix() for p in (done / "v11").rglob("*")
                   if p.is_file()) == [
         "candidate_signature.png", "cv.json", "cv.tex", "steps/key_points.json"]
@@ -107,7 +107,7 @@ def test_the_letter_is_sent_the_job_with_its_analysis_and_its_log_kept(
                       console)
     run_one(processor, yes_posting(processor))
 
-    assert sorted(api.seen_job) == ["analysis.json", "jd.txt"]
+    assert sorted(api.seen_job) == ["analysis.json", "job_description.txt"]
     assert (delivered(workspace) / "cover_letter.txt").read_text() == "Dear hiring manager."
     assert "  v11 2026-01-15T09:00:05 INFO    [run] Σ" in (
         delivered(workspace) / "log.log").read_text()
@@ -177,7 +177,7 @@ def test_a_failed_job_is_kept_under_error_with_what_the_server_said(processor, w
     [failed] = workspace.error.glob("*/Acme_Corp_Head_of_IT")
     assert failed.parent.name == day()
     assert sorted(p.name for p in failed.iterdir()) == [
-        "analysis.json", "approval_status.txt", "jd.txt", "log.log"]
+        "analysis.json", "approval_status.txt", "job_description.txt", "log.log"]
     log = (failed / "log.log").read_text()
     assert "model_output [cv.cv]: cv: no usable reply in 3 attempts" in log
     assert f"  v11 {LOG_LINE}" in log, "the server's own lines"

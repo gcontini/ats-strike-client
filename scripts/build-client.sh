@@ -15,12 +15,12 @@ cd "$(dirname "$0")/.."
 
 DEST="ats-strike-data/gab"
 
-uv run --with pyinstaller pyinstaller --noconfirm client/packaging/cv.spec
+uv run --with pyinstaller pyinstaller --noconfirm --distpath build/dist --workpath build/pyinstaller_cache client/packaging/cv.spec
 
-./dist/cv --help >/dev/null
-./dist/cv version
+./build/dist/cv --help >/dev/null
+./build/dist/cv version
 
-cp dist/cv "$DEST/cv"
+cp build/dist/cv "$DEST/cv"
 chmod +x "$DEST/cv"
 
 # From inside the folder, so its cv.toml is the one picked up.

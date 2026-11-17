@@ -2,7 +2,7 @@
 
 No detection, no question, no CV: the posting goes straight to the analysis,
 by the ``--server_ver`` server or else the default. The result is printed as
-JSON, or written as a ``<Company>_<Title>`` folder holding ``jd.txt`` and
+JSON, or written as a ``<Company>_<Title>`` folder holding ``job_description.txt`` and
 ``analysis.json`` — the shape ``watch`` takes from its inbox, which is where
 ``--out`` points by default. Everything else it says goes to stderr, so
 stdout is only ever the result.

@@ -26,7 +26,7 @@ from .servers import Server
 RECONNECT_SECONDS = 4.0
 
 #: The job file a session is keyed by.
-JD_FILE = "jd.txt"
+JD_FILE = "job_description.txt"
 
 
 def session_id(jd: bytes) -> str:
@@ -41,7 +41,7 @@ def write_cv(
 ) -> None:
     """Write one CV with ``server``, reporting progress through ``say``.
 
-    ``job`` is the posting as this server sees it (``jd.txt`` and what an
+    ``job`` is the posting as this server sees it (``job_description.txt`` and what an
     earlier run stored); the pack is read from the server folder now.
     ``store`` is handed each thing to store as it arrives and must store it:
     only once the last event is in is the session acknowledged. A job that

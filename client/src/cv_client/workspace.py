@@ -17,7 +17,7 @@ Inside a job folder each server has a subfolder of its own, named after it,
 holding what it stored for the job; the PDFs sit at the top::
 
     CV/26-11-13/Acme_Head_of_IT/
-        jd.txt  analysis.json  approval_status.txt  log.log
+        job_description.txt  analysis.json  approval_status.txt  log.log
         cv_jordan_rivera_head_of_it.pdf        the default server's
         cv_jordan_rivera_head_of_it_v05.pdf    any other server's
         v11/  cv.json  cv.tex  steps/*.json  candidate_signature.png
@@ -44,7 +44,7 @@ from .servers import Server
 #: Daily folders under CV/, discarded/ and error/.
 DAY_FORMAT = "%y-%m-%d"
 
-JD_FILENAME = "jd.txt"
+JD_FILENAME = "job_description.txt"
 ANALYSIS_FILENAME = "analysis.json"
 LOG_FILENAME = "log.log"
 LETTER_FILENAME = "cover_letter.txt"

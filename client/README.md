@@ -166,7 +166,7 @@ server makes it, or the one `--server_ver` names (then the default is not
 used). It needs `candidate_profile.json` and `candidate_preferences.md` in
 that server's folder, and costs one model call. With `--output-format json` (the default) the analysis is printed on
 stdout — nothing else is, so it pipes straight into `jq`. With `folder` it
-writes `<Company>_<Title>/` holding `jd.txt` and `analysis.json` into `--out`,
+writes `<Company>_<Title>/` holding `job_description.txt` and `analysis.json` into `--out`,
 which defaults to `incoming/` under `--data-dir` (or the current folder): the
 shape `watch` takes from its input folder, and the folder it watches by
 default. A folder of the same name is replaced. It is written as
@@ -224,7 +224,7 @@ run prints the first line at startup.
 | `-o FILE` | submit-raw | Where to write one output: `.pdf`, `.json` or `.tex`. Repeatable. |
 | `--in DIR` | watch | The folder to watch. Default: `./incoming` (created if missing). |
 | `--in FILE` | analysis | The posting to analyse. Required. |
-| `--output-format json\|folder` | analysis | Print the analysis as JSON (default), or write `<Company>_<Title>/` with `jd.txt` and `analysis.json` into `--out`. |
+| `--output-format json\|folder` | analysis | Print the analysis as JSON (default), or write `<Company>_<Title>/` with `job_description.txt` and `analysis.json` into `--out`. |
 | `--out DIR` | analysis | Where `folder` writes. Default: `<data-dir>/incoming`. |
 | `--cover-letter no\|yes\|letter_only` | clipboard, watch, submit | Also write a cover letter, or write *only* one. Default `no`. |
 | `--yes` | clipboard, watch, submit | Submit every valid posting without asking. Unattended runs spend tokens on their own. In `watch`: never ask, and CHECK postings wait in `working/`. |
@@ -248,7 +248,7 @@ run prints the first line at startup.
 │           ├── cv_jordan_rivera_head_of_it.pdf       the default server's CV
 │           ├── cv_jordan_rivera_head_of_it_v05.pdf   another server's, its name at the end
 │           ├── analysis.json            match score, salary, skills, gaps
-│           ├── jd.txt                   the posting (or its original filename)
+│           ├── job_description.txt                   the posting (or its original filename)
 │           ├── cover_letter.txt         with --cover-letter
 │           ├── log.log                  every step, and each server's own lines
 │           ├── v11/                     cv.json (the content), cv.tex, steps/*.json,

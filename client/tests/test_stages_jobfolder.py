@@ -18,15 +18,15 @@ from cv_client.stages.jobfolder import (
 
 from conftest import analysis
 
-JOB = {"jd.txt", "analysis.json", "log.log"}
+JOB = {"job_description.txt", "analysis.json", "log.log"}
 
 
 @pytest.mark.parametrize(
     "names, should_apply, approval, expected",
     [
-        # 1. no jd.txt or no valid analysis.json -> error, whatever else is there
+        # 1. no job_description.txt or no valid analysis.json -> error, whatever else is there
         ({"analysis.json"}, "YES", None, "error"),
-        ({"jd.txt"}, None, None, "error"),
+        ({"job_description.txt"}, None, None, "error"),
         ({"analysis.json", "cv_Jordan_Rivera.json"}, "YES", "APPROVED", "error"),
         # 2. nobody has decided yet: should_apply decides, whatever CV it holds
         (JOB, "YES", None, "generate"),
@@ -61,7 +61,7 @@ def job_folder(tmp_path, **files):
 
 
 def test_classify_reads_the_folder(tmp_path):
-    folder = job_folder(tmp_path, jd__txt="a posting",
+    folder = job_folder(tmp_path, job_description__txt="a posting",
                         analysis__json=analysis(should_apply="CHECK").model_dump_json())
     assert classify(folder)[0] == "approve"
     write_approval(folder, "APPROVED")
@@ -70,7 +70,7 @@ def test_classify_reads_the_folder(tmp_path):
 
 
 def test_an_analysis_that_does_not_validate_is_an_error_that_says_so(tmp_path):
-    folder = job_folder(tmp_path, jd__txt="a posting", analysis__json="{}")
+    folder = job_folder(tmp_path, job_description__txt="a posting", analysis__json="{}")
     where, why = classify(folder)
     assert where == "error"
     assert "analysis.json is not valid" in why
@@ -78,7 +78,7 @@ def test_an_analysis_that_does_not_validate_is_an_error_that_says_so(tmp_path):
 
 def test_a_folder_holding_its_cv_is_written_like_any_other(tmp_path):
     """Each server is sent what it stored, and renders it: not the client's call."""
-    folder = job_folder(tmp_path, jd__txt="a posting",
+    folder = job_folder(tmp_path, job_description__txt="a posting",
                         analysis__json=analysis(should_apply="YES").model_dump_json())
     (folder / "v11").mkdir()
     (folder / "v11" / "cv.json").write_text("{}")
@@ -87,7 +87,7 @@ def test_a_folder_holding_its_cv_is_written_like_any_other(tmp_path):
 
 def test_a_folder_holding_only_a_subfolder_is_an_error(tmp_path):
     folder = job_folder(tmp_path)
-    (folder / "jd.txt").mkdir()
+    (folder / "job_description.txt").mkdir()
     assert classify(folder)[0] == "error"
 
 

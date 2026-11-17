@@ -174,7 +174,7 @@ def build_parser(names: Sequence[str] = (), default: Optional[str] = None
     analysis.add_argument("--output-format", choices=analysis_mode.OUTPUT_FORMATS,
                           default="json",
                           help="json: print the analysis on stdout. folder: write "
-                               "<Company>_<Title>/ with jd.txt and analysis.json into "
+                               "<Company>_<Title>/ with job_description.txt and analysis.json into "
                                "--out, replacing one of the same name. Default: json.")
     analysis.add_argument("--out", type=Path,
                           help="Where --output-format folder writes. "

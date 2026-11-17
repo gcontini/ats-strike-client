@@ -31,7 +31,7 @@ git clone --recurse-submodules https://github.com/gcontini/ats-strike-client
 uv sync
 uv run pytest            # no server, no network, no terminal
 uv run cv --help
-uv run --with pyinstaller pyinstaller --noconfirm client/packaging/cv.spec   # dist/cv
+uv run --with pyinstaller pyinstaller --noconfirm --distpath build/dist --workpath build/pyinstaller_cache client/packaging/cv.spec   # build/dist/cv
 ```
 
 [Building the client](doc/build-client.md) and [Cutting a release](doc/release.md)

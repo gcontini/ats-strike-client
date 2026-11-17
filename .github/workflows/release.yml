@@ -101,7 +101,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - run: uv sync --frozen
-      - run: uv run --with pyinstaller pyinstaller --noconfirm client/packaging/cv.spec
+      - run: uv run --with pyinstaller pyinstaller --noconfirm --distpath build/dist --workpath build/pyinstaller_cache client/packaging/cv.spec
 
       # The one thing this job exists to prove. -F because Windows prints CRLF
       # and because a version string is not a regex.
@@ -109,12 +109,12 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         shell: bash
-        run: ./dist/cv version | grep -qF "version $VERSION"
+        run: ./build/dist/cv version | grep -qF "version $VERSION"
 
       - uses: actions/upload-artifact@v7
         with:
           name: binary-${{ matrix.os }}
-          path: dist/cv*
+          path: build/dist/cv*
           if-no-files-found: error
 
   # One archive, both binaries, and a data folder ready to run: cv.toml's

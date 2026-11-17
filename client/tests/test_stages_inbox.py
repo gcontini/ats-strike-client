@@ -41,10 +41,10 @@ def test_a_posting_is_analysed_handed_over_then_deleted(reader, inbox, workspace
     scan(reader)
 
     assert api.calls == ["detect", "analyze"]
-    assert api.seen_job == {"jd.txt": JD_TEXT.encode()}
+    assert api.seen_job == {"job_description.txt": JD_TEXT.encode()}
     assert "candidate_preferences.md" in api.seen_pack
     [folder] = workspace.working_jobs()
-    assert (folder / "jd.txt").read_text() == JD_TEXT
+    assert (folder / "job_description.txt").read_text() == JD_TEXT
     assert processor.approvals.get_nowait() == folder, "the fake's analysis says CHECK"
     assert f"  v11 {LOG_LINE}" in (folder / "log.log").read_text(), "the analysis' own log"
     assert not any(inbox.iterdir())
@@ -165,11 +165,11 @@ def test_an_analysed_folder_is_handed_over_whole_then_removed(reader, inbox, wor
 
 def test_a_folder_without_jd_txt_goes_to_error_with_why_inside(reader, inbox, workspace, api):
     job = make_job(inbox, "old_job")
-    (job / "jd.txt").rename(job / "posting.txt")
+    (job / "job_description.txt").rename(job / "posting.txt")
     scan(reader)
 
     assert api.calls == []
-    assert "no jd.txt" in (filed(workspace, "old_job") / "log.log").read_text()
+    assert "no job_description.txt" in (filed(workspace, "old_job") / "log.log").read_text()
     assert not any(inbox.iterdir())
 
 

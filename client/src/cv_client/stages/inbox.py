@@ -9,7 +9,7 @@ in between costs one more analysis at the next start, never the posting.
   is one already applied to, discarded or in progress; otherwise the free
   check, the server's check, the analysis, then it is handed over;
 - any other file goes to ``error/`` without a call;
-- a folder must hold ``jd.txt`` and a valid ``analysis.json`` (an earlier
+- a folder must hold ``job_description.txt`` and a valid ``analysis.json`` (an earlier
   job, one from ``error/`` to retry): it is handed over whole, or goes to
   ``error/`` with why.
 """
