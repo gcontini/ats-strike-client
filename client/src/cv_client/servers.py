@@ -1,7 +1,7 @@
 """The servers a CV is written with: one ``[servers.<name>]`` section each in ``cv.toml``.
 
-A section says where the server is, the pipeline it asks for there
-(``pipeline``, ``"v1"`` when left out), its token, its timeout, the
+A section says where the server is and which of its pipelines to ask — one
+``url``, ``http://host/v1`` — its token, its timeout, the
 ``[settings]`` table forwarded to it untouched, and the folder that holds everything it is
 sent: your candidate files, any prompt, template or image you want instead of
 its own, and a ``cache/`` it fills itself. The client reads no file name in
@@ -35,9 +35,8 @@ class Server:
 
     name: str
     folder: Path
+    #: The server and its pipeline: ``http://host/v1``.
     url: str
-    #: The first segment of every pipeline path on the server: ``/v1/cv``.
-    pipeline: str = "v1"
     token: Optional[str] = None
     #: Analyses postings and writes the letter: ``default_server`` in ``cv.toml``.
     default: bool = False
@@ -70,7 +69,6 @@ def read_server(base: Path, name: str, raw: Any) -> Server:
         name=name,
         folder=folder,
         url=raw["url"],
-        pipeline=raw.get("pipeline", "v1"),
         token=raw.get("token") or None,
         timeout=float(raw.get("timeout", DEFAULT_TIMEOUT)),
         settings=dict(raw.get("settings") or {}),

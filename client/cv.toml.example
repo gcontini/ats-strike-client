@@ -27,11 +27,9 @@ verbose = false
 # Two servers may share a folder.
 folder = "v11"
 
-url = "http://localhost:8080"
-
-# The pipeline asked for on that server: the first segment of its paths
-# (/v1/cv). Default "v1".
-# pipeline = "v1"
+# The server and the pipeline to ask there: its URL, then /v1 (or /v2 on a
+# server that has one).
+url = "http://localhost:8080/v1"
 
 # Only if the server requires one (it answers 401 without it).
 # token = "..."

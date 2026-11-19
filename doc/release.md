@@ -74,7 +74,7 @@ folder, ready to run:
 cv                           the Linux executable, already +x
 cv.exe                       the Windows executable
 README.md                    the client README, links rewritten for this layout
-cv.toml                      [servers.v11]: folder v11, http://localhost:8080; edit it
+cv.toml                      [servers.v11]: folder v11, http://localhost:8080/v1; edit it
 posting.txt                  something to try it on
 v11/                         a server folder
   candidate_profile.json     the fictional set, ready to edit

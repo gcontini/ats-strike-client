@@ -424,8 +424,7 @@ verbose      = false              # same as -v on every run
 
 [servers.v11]                     # one section per server
 folder  = "v11"                   # its server folder, relative to this file
-url     = "https://ats-strike.example.run.app"
-pipeline = "v1"                   # the server's pipeline, its paths' first segment; default v1
+url     = "https://ats-strike.example.run.app/v1"   # the server, then its pipeline
 token   = "the-bearer-token"      # only if the server requires one
 timeout = 1800                    # seconds to follow one CV job
 
@@ -436,7 +435,7 @@ temperature = 0.4
 
 [servers.v05]
 folder  = "v11"                   # two servers may share a folder
-url     = "https://ats-strike-v05.example.run.app"
+url     = "https://ats-strike-v05.example.run.app/v1"
 ```
 
 A server's name is its section's name, not its folder's: the name

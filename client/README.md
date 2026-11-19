@@ -50,8 +50,7 @@ LaTeX install (for the client).
 
    [servers.v11]
    folder  = "v11"                 # the folder above, relative to cv.toml
-   url     = "https://ats-strike.example.run.app"
-   # pipeline = "v1"               # the server's pipeline, its paths' first segment
+   url     = "https://ats-strike.example.run.app/v1"   # the server, then its pipeline
    token   = "the-bearer-token"    # only if the server requires one
    # timeout = 1800                # seconds to follow one CV job
 

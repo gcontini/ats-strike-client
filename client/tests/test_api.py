@@ -12,7 +12,6 @@ import httpx
 import pytest
 
 from cv_client.api import CVError, HttpApi
-from cv_client.servers import read_server
 
 
 def _health(protocol=None) -> httpx.Response:
@@ -24,30 +23,30 @@ def _health(protocol=None) -> httpx.Response:
 
 def _client_reporting(protocol) -> httpx.Client:
     return httpx.Client(
-        transport=httpx.MockTransport(lambda request: _health(protocol)), base_url="http://server.invalid"
+        transport=httpx.MockTransport(lambda request: _health(protocol)), base_url="http://server.invalid/v1"
     )
 
 
 def test_another_protocol_stops_before_the_first_call():
-    api = HttpApi("http://server.invalid", client=_client_reporting(3))
+    api = HttpApi("http://server.invalid/v1", client=_client_reporting(3))
     with pytest.raises(CVError, match="speaks protocol 3, this client speaks protocol 2"):
         api._ensure_healthy()
 
 
 def test_a_server_that_does_not_say_is_protocol_1_and_refused():
-    api = HttpApi("http://server.invalid", client=_client_reporting(None))
+    api = HttpApi("http://server.invalid/v1", client=_client_reporting(None))
     with pytest.raises(CVError, match="speaks protocol 1"):
         api._ensure_healthy()
 
 
 def test_the_same_protocol_is_quiet(capsys):
-    api = HttpApi("http://server.invalid", client=_client_reporting(2))
+    api = HttpApi("http://server.invalid/v1", client=_client_reporting(2))
     api._ensure_healthy()
     assert capsys.readouterr().err == ""
 
 
 def test_the_health_check_keeps_the_servers_version():
-    api = HttpApi("http://server.invalid", client=_client_reporting(2))
+    api = HttpApi("http://server.invalid/v1", client=_client_reporting(2))
     assert api.server_version == "?"
     api._ensure_healthy()
     assert api.server_version == "1.0.4"
@@ -90,11 +89,11 @@ def _server(seen: list, *, events=None, status: int = 200) -> httpx.Client:
             200, json={"request_id": "r", "ok": True, "data": {"reattached": False, "deleted": 1, "running": 0}}
         )
 
-    return httpx.Client(transport=httpx.MockTransport(handler), base_url="http://server.invalid")
+    return httpx.Client(transport=httpx.MockTransport(handler), base_url="http://server.invalid/v1")
 
 
 def test_a_stream_is_read_as_typed_events_skipping_pings_and_unknown_types():
-    api = HttpApi("http://server.invalid", client=_server([]))
+    api = HttpApi("http://server.invalid/v1", client=_server([]))
     events = list(api.events("abc"))
     assert [(number, kind) for number, kind, _ in events] == [(1, "status"), (3, "store")]
     assert events[1][2].content() == b"%PDF"
@@ -102,13 +101,13 @@ def test_a_stream_is_read_as_typed_events_skipping_pings_and_unknown_types():
 
 def test_a_reconnect_says_where_it_got_to():
     seen: list = []
-    api = HttpApi("http://server.invalid", client=_server(seen))
+    api = HttpApi("http://server.invalid/v1", client=_server(seen))
     list(api.events("abc", 7))
     assert seen[0].headers["last-event-id"] == "7"
 
 
 def test_a_stream_the_server_refuses_raises_with_its_status():
-    api = HttpApi("http://server.invalid", client=_server([], status=404))
+    api = HttpApi("http://server.invalid/v1", client=_server([], status=404))
     with pytest.raises(CVError) as failure:
         list(api.events("abc"))
     assert failure.value.status == 404
@@ -117,7 +116,7 @@ def test_a_stream_the_server_refuses_raises_with_its_status():
 
 def test_a_broken_stream_raises_with_no_status_after_what_it_delivered():
     """No status: nothing answered, so there is something to reconnect to."""
-    api = HttpApi("http://server.invalid", client=_server([], events=Broken()))
+    api = HttpApi("http://server.invalid/v1", client=_server([], events=Broken()))
     delivered = []
     with pytest.raises(CVError) as failure:
         for event in api.events("abc"):
@@ -128,14 +127,14 @@ def test_a_broken_stream_raises_with_no_status_after_what_it_delivered():
 
 def test_a_cv_job_is_sent_under_its_session_id():
     seen: list = []
-    api = HttpApi("http://server.invalid", client=_server(seen))
+    api = HttpApi("http://server.invalid/v1", client=_server(seen))
     api.create_cv({}, {"job_description.txt": b"posting"}, {}, "abc123")
     assert seen[0].headers["x-request-id"] == "abc123"
 
 
 def test_every_file_is_a_part_named_by_its_path_and_settings_go_as_json():
     seen: list = []
-    api = HttpApi("http://server.invalid", client=_server(seen))
+    api = HttpApi("http://server.invalid/v1", client=_server(seen))
     api.create_cv(
         {"candidate_profile.json": b"{}", "cache/steps/pool.json": b"[]"},
         {"job_description.txt": b"posting", "steps/key_points.json": b"[]"},
@@ -156,22 +155,22 @@ def test_every_file_is_a_part_named_by_its_path_and_settings_go_as_json():
 
 def test_no_settings_means_no_settings_part():
     seen: list = []
-    api = HttpApi("http://server.invalid", client=_server(seen))
+    api = HttpApi("http://server.invalid/v1", client=_server(seen))
     api.create_cv({}, {"job_description.txt": b"posting"}, {}, "abc123")
     assert b'name="settings"' not in seen[0].content
 
 
 def test_a_reset_has_to_say_all():
     seen: list = []
-    api = HttpApi("http://server.invalid", client=_server(seen))
+    api = HttpApi("http://server.invalid/v1", client=_server(seen))
     assert api.reset().data.deleted == 1
     assert (seen[0].method, seen[0].url.path, seen[0].url.query) == ("DELETE", "/v1/cv", b"all=")
 
 
-def test_a_section_with_pipeline_v2_sends_v2_paths(tmp_path):
-    (tmp_path / "v2").mkdir()
-    server = read_server(tmp_path, "v2", {"folder": "v2", "url": "http://server.invalid", "pipeline": "v2"})
+def test_the_url_names_the_pipeline_and_healthz_is_at_the_root():
+    api = HttpApi("http://server.invalid/v2")
+    assert api._client.build_request("POST", "/cv").url == "http://server.invalid/v2/cv"
     seen: list = []
-    api = HttpApi(server.url, pipeline=server.pipeline, client=_server(seen))
-    api.create_cv({}, {"job_description.txt": b"posting"}, {}, "abc123")
-    assert seen[0].url.path == "/v2/cv"
+    reporting = httpx.Client(transport=httpx.MockTransport(lambda r: seen.append(r) or _health(2)))
+    HttpApi("http://server.invalid/v2", client=reporting).status()
+    assert seen[0].url == "http://server.invalid/healthz"
