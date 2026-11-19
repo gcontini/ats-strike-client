@@ -116,8 +116,11 @@ class Artifacts:
 
 def _safe(name: str) -> bool:
     """A relative path that stays inside the folder it is joined to, on any system."""
-    return bool(name) and "\\" not in name and not PureWindowsPath(name).drive and not (
-        PurePosixPath(name).is_absolute() or ".." in PurePosixPath(name).parts
+    return (
+        bool(name)
+        and "\\" not in name
+        and not PureWindowsPath(name).drive
+        and not (PurePosixPath(name).is_absolute() or ".." in PurePosixPath(name).parts)
     )
 
 
@@ -164,8 +167,7 @@ class JobFiles:
         data_file = self.server.folder / "candidate_data.json"
         data = json.loads(data_file.read_text(encoding="utf-8")) if data_file.is_file() else {}
         analysis = json.loads((self.job / ANALYSIS_FILENAME).read_text(encoding="utf-8"))
-        artifacts = Artifacts(str(data.get("name") or "candidate"),
-                              str(analysis.get("job_title") or ""))
+        artifacts = Artifacts(str(data.get("name") or "candidate"), str(analysis.get("job_title") or ""))
         return self.job / artifacts.pdf("" if self.server.default else self.server.name)
 
     def store(self, item: StoreItem, log: JobLog) -> Optional[Path]:
@@ -182,11 +184,9 @@ class JobFiles:
             with (cache / LOG_FILENAME).open("ab") as fh:
                 fh.write(item.content() + b"\n")
             return cache / LOG_FILENAME
-        bases = {("CV", "step"): self.own,
-                 ("CACHE", "step"): self.server.folder / CACHE_DIRNAME}
+        bases = {("CV", "step"): self.own, ("CACHE", "step"): self.server.folder / CACHE_DIRNAME}
         if where not in bases or not _safe(item.name):
-            log.step(f"⚠ {self.server.name}: skipped a {item.location}/{item.type} item "
-                     f"named {item.name!r}")
+            log.step(f"⚠ {self.server.name}: skipped a {item.location}/{item.type} item named {item.name!r}")
             return None
         target = bases[where] / item.name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -307,7 +307,17 @@ class Workspace:
 
 
 __all__ = [
-    "Workspace", "Artifacts", "JobFiles", "sanitize_name", "job_name", "staged_job",
-    "unstage", "day",
-    "JD_FILENAME", "ANALYSIS_FILENAME", "LOG_FILENAME", "LETTER_FILENAME", "CACHE_DIRNAME",
+    "Workspace",
+    "Artifacts",
+    "JobFiles",
+    "sanitize_name",
+    "job_name",
+    "staged_job",
+    "unstage",
+    "day",
+    "JD_FILENAME",
+    "ANALYSIS_FILENAME",
+    "LOG_FILENAME",
+    "LETTER_FILENAME",
+    "CACHE_DIRNAME",
 ]

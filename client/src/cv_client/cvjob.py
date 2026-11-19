@@ -35,9 +35,14 @@ def session_id(jd: bytes) -> str:
 
 
 def write_cv(
-    api: CVApi, server: Server, job: Files, *,
-    say: Callable[[str], None], store: Callable[[StoreItem], None],
-    new: bool = False, verbose: bool = False,
+    api: CVApi,
+    server: Server,
+    job: Files,
+    *,
+    say: Callable[[str], None],
+    store: Callable[[StoreItem], None],
+    new: bool = False,
+    verbose: bool = False,
 ) -> None:
     """Write one CV with ``server``, reporting progress through ``say``.
 
@@ -54,8 +59,7 @@ def write_cv(
         _drop(api, request_id)
     session = api.create_cv(server.pack(), job, server.settings, request_id).data
     if session.reattached:
-        say("   ↺ this posting already has a run on the server: replaying it "
-            "(--new starts over)")
+        say("   ↺ this posting already has a run on the server: replaying it (--new starts over)")
     if verbose:
         say(f"   session: {request_id}")
 
@@ -70,8 +74,13 @@ def write_cv(
 
 
 def _follow(
-    api: CVApi, server: Server, request_id: str, *,
-    say: Callable[[str], None], store: Callable[[StoreItem], None], verbose: bool,
+    api: CVApi,
+    server: Server,
+    request_id: str,
+    *,
+    say: Callable[[str], None],
+    store: Callable[[StoreItem], None],
+    verbose: bool,
 ) -> Union[Done, Failure]:
     """Every event up to the session's last, which is returned. A stream that
     breaks is reopened after the last event it delivered, until the timeout."""
@@ -117,7 +126,8 @@ def _drop(api: CVApi, request_id: str) -> None:
             raise CVError(
                 "this posting's CV is still being written on the server — run it "
                 "without --new to follow it, or once it has finished",
-                status=409, request_id=request_id,
+                status=409,
+                request_id=request_id,
             ) from exc
         raise
 

@@ -22,7 +22,17 @@ members = ["contracts", "client"]
 ats-strike-contracts = { workspace = true }
 
 [dependency-groups]
-dev = ["pytest>=8", "pytest-cov>=5"]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.17.5",
+]
+
+# The code is written at 120 columns. The contracts are a submodule: formatted
+# in their own repository.
+[tool.ruff]
+line-length = 120
+extend-exclude = ["contracts", "ats-strike-data", "build"]
 
 [tool.pytest.ini_options]
 testpaths = ["contracts/tests", "client/tests"]

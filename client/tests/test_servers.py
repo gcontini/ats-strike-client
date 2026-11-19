@@ -15,8 +15,7 @@ def test_the_pack_is_every_file_subfolders_included(tmp_path):
 
     pack = server.pack()
 
-    assert sorted(pack) == ["cache/steps/pool.json", "candidate_profile.json",
-                            "sys_prompt_cv_body.txt"]
+    assert sorted(pack) == ["cache/steps/pool.json", "candidate_profile.json", "sys_prompt_cv_body.txt"]
     assert pack["sys_prompt_cv_body.txt"] == b"MINE"
 
 
@@ -32,4 +31,9 @@ def test_a_server_is_named_after_its_section_not_its_folder(tmp_path):
     make_server(tmp_path, "v11")
     server = read_server(tmp_path, "v05", {"folder": "v11", "url": "http://v05.invalid"})
     assert (server.name, server.folder, server.default, server.timeout, server.settings) == (
-        "v05", tmp_path / "v11", False, 1800.0, {})
+        "v05",
+        tmp_path / "v11",
+        False,
+        1800.0,
+        {},
+    )

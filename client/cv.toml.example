@@ -29,6 +29,10 @@ folder = "v11"
 
 url = "http://localhost:8080"
 
+# The pipeline asked for on that server: the first segment of its paths
+# (/v1/cv). Default "v1".
+# pipeline = "v1"
+
 # Only if the server requires one (it answers 401 without it).
 # token = "..."
 

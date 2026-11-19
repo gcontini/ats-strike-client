@@ -35,8 +35,7 @@ def run(config: Config, source: Path, *, output: Path | None = None) -> int:
     [server] = config.targets
     calls = connect([server], verbose=config.verbose)[server.name]
     try:
-        reply = calls.make(lambda: calls.api.render(server.pack(), {name: source.read_bytes()},
-                                                    server.settings))
+        reply = calls.make(lambda: calls.api.render(server.pack(), {name: source.read_bytes()}, server.settings))
     except CVError as exc:
         fail(f"{exc}")
 
@@ -44,8 +43,7 @@ def run(config: Config, source: Path, *, output: Path | None = None) -> int:
         for item in reply.items:
             if (item.location, item.type) == ("CV", "log"):
                 print(f"  {server.name} {item.text}", flush=True)
-    pdf = next((item for item in reply.items if (item.location, item.type) == ("CV", "cv")),
-               None)
+    pdf = next((item for item in reply.items if (item.location, item.type) == ("CV", "cv")), None)
     if pdf is None:
         fail(f"{server.name} sent no PDF")
     target = Path(output) if output else source.with_suffix(".pdf")

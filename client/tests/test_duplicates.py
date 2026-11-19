@@ -32,21 +32,26 @@ def test_the_same_url_is_the_same_job():
     assert same_job(a, b)
 
 
-@pytest.mark.parametrize("url", [
-    "https://www.linkedin.com/jobs/view/4459531655",
-    "https://www.linkedin.com/jobs/view/4459531655/",
-    "https://it.linkedin.com/jobs/view/4459531655/?refId=abc&trackingId=x%3D%3D",
-    "https://www.linkedin.com/jobs/view/senior-presale-it-at-hera-4459531655",
-    "https://www.linkedin.com/jobs/search/?currentJobId=4459531655&keywords=presale",
-    "https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4459531655",
-])
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.linkedin.com/jobs/view/4459531655",
+        "https://www.linkedin.com/jobs/view/4459531655/",
+        "https://it.linkedin.com/jobs/view/4459531655/?refId=abc&trackingId=x%3D%3D",
+        "https://www.linkedin.com/jobs/view/senior-presale-it-at-hera-4459531655",
+        "https://www.linkedin.com/jobs/search/?currentJobId=4459531655&keywords=presale",
+        "https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4459531655",
+    ],
+)
 def test_a_linkedin_job_is_keyed_by_its_id_wherever_it_was_copied_from(url):
     assert posting_key(url) == "linkedin:4459531655"
 
 
 def test_a_linkedin_url_without_a_job_id_loses_only_its_query():
-    assert (posting_key("https://www.linkedin.com/jobs/view/cloud-architect-milan/?refId=1")
-            == "https://www.linkedin.com/jobs/view/cloud-architect-milan")
+    assert (
+        posting_key("https://www.linkedin.com/jobs/view/cloud-architect-milan/?refId=1")
+        == "https://www.linkedin.com/jobs/view/cloud-architect-milan"
+    )
 
 
 def test_other_urls_keep_their_query_and_path():
@@ -65,10 +70,16 @@ def test_no_job_posting_line_no_url():
 
 
 def test_the_same_linkedin_job_is_the_same_job_under_different_company_names():
-    a = {"posting_url": "https://www.linkedin.com/jobs/view/4459531655",
-         "company_name": "Herabit (Gruppo Hera)", "job_title": "Senior Presale IT"}
-    b = {"posting_url": "https://www.linkedin.com/jobs/view/4459531655/",
-         "company_name": "Gruppo Hera", "job_title": "Senior Presale IT"}
+    a = {
+        "posting_url": "https://www.linkedin.com/jobs/view/4459531655",
+        "company_name": "Herabit (Gruppo Hera)",
+        "job_title": "Senior Presale IT",
+    }
+    b = {
+        "posting_url": "https://www.linkedin.com/jobs/view/4459531655/",
+        "company_name": "Gruppo Hera",
+        "job_title": "Senior Presale IT",
+    }
     assert same_job(a, b)
 
 
@@ -99,6 +110,7 @@ def test_nothing_to_compare_is_never_a_match():
 def test_find_previous_reads_old_files_as_plain_dicts(tmp_path):
     """Old analyses were written against older schemas: never validated,
     and one that cannot be read is skipped, not fatal."""
+
     def job(name, content):
         folder = tmp_path / name
         folder.mkdir()

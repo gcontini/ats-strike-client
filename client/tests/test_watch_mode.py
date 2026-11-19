@@ -32,8 +32,7 @@ class ByFirstLine(FakeApi):
     def analyze(self, pack, job, settings):
         self._record("analyze")
         company, should_apply = job["job_description.txt"].decode().split("\n", 1)[0].split("|")
-        return envelope(Analysed(analysis=analysis(company_name=company,
-                                                   should_apply=should_apply).model_dump()))
+        return envelope(Analysed(analysis=analysis(company_name=company, should_apply=should_apply).model_dump()))
 
 
 class Approves:
@@ -59,9 +58,10 @@ def build(api, config, workspace, inbox, keyboard, reviewer):
     return Watcher(
         working,
         HumanApproval(working, reviewer, keyboard, console, poll_seconds=0.01).run,
-        {"inbox": InputProcessor(inbox, calls["v11"], working, console,
-                                 poll_seconds=0.01, settle_seconds=0),
-         "cv": GenerationWorker(working, writer, console, config.default, poll_seconds=0.01)},
+        {
+            "inbox": InputProcessor(inbox, calls["v11"], working, console, poll_seconds=0.01, settle_seconds=0),
+            "cv": GenerationWorker(working, writer, console, config.default, poll_seconds=0.01),
+        },
         keyboard,
         console,
         join_seconds=0.01,
@@ -102,8 +102,7 @@ def test_postings_flow_through_the_four_stages(config, workspace, inbox, typist)
     (inbox / "d.txt").write_text("too short to be a posting")
     reviewer = Approves()
 
-    thread, result = in_background(build(api, config, workspace, inbox, Keyboard(typist),
-                                         reviewer))
+    thread, result = in_background(build(api, config, workspace, inbox, Keyboard(typist), reviewer))
     wait_until(lambda: len(entries(workspace.cv)) == 3 and not any(inbox.iterdir()))
     typist.type("q")
     thread.join(DEADLINE)
@@ -134,8 +133,7 @@ def test_q_lets_the_generation_in_hand_finish(config, workspace, inbox, typist):
 
     api = Slow()
     (inbox / "a.txt").write_text(posting("Yes Corp", "YES"))
-    thread, result = in_background(build(api, config, workspace, inbox, Keyboard(typist),
-                                         Approves()))
+    thread, result = in_background(build(api, config, workspace, inbox, Keyboard(typist), Approves()))
     try:
         assert api.writing.wait(DEADLINE)
         typist.type("q")
@@ -153,8 +151,7 @@ def test_q_lets_the_generation_in_hand_finish(config, workspace, inbox, typist):
 def test_a_failed_job_makes_the_exit_code_1(config, workspace, inbox, typist):
     api = ByFirstLine(fail_on="create_cv")
     (inbox / "a.txt").write_text(posting("Yes Corp", "YES"))
-    thread, result = in_background(build(api, config, workspace, inbox, Keyboard(typist),
-                                         Approves()))
+    thread, result = in_background(build(api, config, workspace, inbox, Keyboard(typist), Approves()))
     wait_until(lambda: len(entries(workspace.error)) == 1)
     typist.type("q")
     thread.join(DEADLINE)

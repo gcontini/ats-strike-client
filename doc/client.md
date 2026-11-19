@@ -425,6 +425,7 @@ verbose      = false              # same as -v on every run
 [servers.v11]                     # one section per server
 folder  = "v11"                   # its server folder, relative to this file
 url     = "https://ats-strike.example.run.app"
+pipeline = "v1"                   # the server's pipeline, its paths' first segment; default v1
 token   = "the-bearer-token"      # only if the server requires one
 timeout = 1800                    # seconds to follow one CV job
 

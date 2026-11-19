@@ -77,8 +77,9 @@ def find_config(explicit: Optional[Path] = None, data_dir: Optional[Path] = None
     return candidate if candidate.is_file() else None
 
 
-def server_names(config_file: Optional[Path] = None,
-                 data_dir: Optional[Path] = None) -> Tuple[List[str], Optional[str]]:
+def server_names(
+    config_file: Optional[Path] = None, data_dir: Optional[Path] = None
+) -> Tuple[List[str], Optional[str]]:
     """The ``[servers.<name>]`` sections of ``cv.toml`` and the default's name,
     for the help text: nothing is checked, and a file that cannot be read gives
     none."""
@@ -120,21 +121,21 @@ def load_config(
     cli_changes = {k: v for k, v in (overrides or {}).items() if v is not None}
     config = replace(config, **cli_changes)
     if config.cover_letter not in COVER_LETTER_MODES:
-        raise ConfigError(
-            f"cover_letter must be one of {', '.join(COVER_LETTER_MODES)}; "
-            f"got {config.cover_letter!r}"
-        )
+        raise ConfigError(f"cover_letter must be one of {', '.join(COVER_LETTER_MODES)}; got {config.cover_letter!r}")
 
     base = path.parent if path is not None else Path.cwd()
     try:
-        targets, default = load_servers(base, raw.get("servers", {}),
-                                        default=raw.get("default_server"), selected=selected,
-                                        default_needed=default_needed)
+        targets, default = load_servers(
+            base,
+            raw.get("servers", {}),
+            default=raw.get("default_server"),
+            selected=selected,
+            default_needed=default_needed,
+        )
     except ConfigError as exc:
         where = path or f"no {CONFIG_NAME} found"
         raise ConfigError(f"{where}: {exc}") from exc
     return replace(config, targets=targets, default=default)
 
 
-__all__ = ["Config", "ConfigError", "load_config", "find_config", "server_names",
-           "COVER_LETTER_MODES", "CONFIG_NAME"]
+__all__ = ["Config", "ConfigError", "load_config", "find_config", "server_names", "COVER_LETTER_MODES", "CONFIG_NAME"]

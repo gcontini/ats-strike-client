@@ -36,15 +36,12 @@ def print_analysis(analysis: JDAnalysis) -> None:
     print("📊 JD ANALYSIS")
     print("=" * 56)
     print(f"Job title         : {analysis.job_title}")
-    print(f"Match %           : {analysis.match_percentage}%  "
-          f"({analysis.match_rationale or 'no rationale'})")
+    print(f"Match %           : {analysis.match_percentage}%  ({analysis.match_rationale or 'no rationale'})")
     print(f"Work location     : {analysis.work_location or 'not specified'}")
     print(f"Work mode         : {analysis.work_mode}")
     print(f"Expected salary   : {analysis.expected_salary or 'not specified'}")
-    print(f"Max salary        : "
-          f"{analysis.max_salary if analysis.max_salary != -1 else 'not found'}")
-    print(f"Salary match      : "
-          f"{'not specified' if analysis.salary_match is None else analysis.salary_match}")
+    print(f"Max salary        : {analysis.max_salary if analysis.max_salary != -1 else 'not found'}")
+    print(f"Salary match      : {'not specified' if analysis.salary_match is None else analysis.salary_match}")
     print(f"Hard skills       : {', '.join(analysis.hard_skills) or 'n/a'}")
     print(f"Soft skills       : {', '.join(analysis.soft_skills) or 'n/a'}")
     print(f"Company           : {analysis.company_name}")
@@ -71,8 +68,7 @@ class PromptConfirmer:
         # A second y meant for the last posting must not submit this one.
         self.keyboard.discard_typed_ahead()
         print_analysis(analysis)
-        print("Paste the posting URL to submit, y = submit without link, "
-              "n/s = skip, q = quit", flush=True)
+        print("Paste the posting URL to submit, y = submit without link, n/s = skip, q = quit", flush=True)
         while True:
             print("> ", end="", flush=True)
             answer = self.keyboard.read(self.poll_seconds)
@@ -110,8 +106,7 @@ class AutoConfirmer:
 
 def ask_recovery(files: int, folders: int) -> str:
     """``working/`` is not empty at startup: clean it or resume it."""
-    print(f"\n⚠ working/ still holds {files} file(s) and {folders} job folder(s) "
-          "from a previous run.", flush=True)
+    print(f"\n⚠ working/ still holds {files} file(s) and {folders} job folder(s) from a previous run.", flush=True)
     print("  r = resume them, c = clean them out, q = quit", flush=True)
     while True:
         try:
@@ -137,5 +132,13 @@ def warn(message: str) -> None:
     print(f"⚠ {message}", file=sys.stderr, flush=True)
 
 
-__all__ = ["Decision", "Confirmer", "PromptConfirmer", "AutoConfirmer",
-           "print_analysis", "ask_recovery", "fail", "warn"]
+__all__ = [
+    "Decision",
+    "Confirmer",
+    "PromptConfirmer",
+    "AutoConfirmer",
+    "print_analysis",
+    "ask_recovery",
+    "fail",
+    "warn",
+]

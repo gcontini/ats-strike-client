@@ -31,8 +31,7 @@ def apis(api, monkeypatch):
     return by_url
 
 
-def test_json_goes_to_stdout_and_nothing_is_detected(posting, config, api, apis, tmp_path,
-                                                     capsys):
+def test_json_goes_to_stdout_and_nothing_is_detected(posting, config, api, apis, tmp_path, capsys):
     assert analysis_mode.run(config, posting, tmp_path / "out") == 0
 
     assert json.loads(capsys.readouterr().out) == analysis().model_dump(exclude_unset=True)
@@ -48,8 +47,7 @@ def test_the_server_folder_is_what_is_sent(posting, config, server, api, apis, t
     assert api.seen_pack["sys_prompt_analysis.txt"] == b"MY PROMPT"
 
 
-def test_server_ver_is_used_and_the_default_never_is(posting, config, servers_dir, api, apis,
-                                                     tmp_path):
+def test_server_ver_is_used_and_the_default_never_is(posting, config, servers_dir, api, apis, tmp_path):
     v05 = make_server(servers_dir, "v05")
     analysis_mode.run(replace(config, targets=(v05,)), posting, tmp_path / "out")
 
@@ -57,8 +55,7 @@ def test_server_ver_is_used_and_the_default_never_is(posting, config, servers_di
     assert api.calls == []
 
 
-def test_folder_holds_the_posting_and_its_analysis_as_watch_takes_them(posting, config, apis,
-                                                                       tmp_path):
+def test_folder_holds_the_posting_and_its_analysis_as_watch_takes_them(posting, config, apis, tmp_path):
     out = tmp_path / "out"
     assert analysis_mode.run(config, posting, out, output_format="folder") == 0
 
@@ -103,8 +100,7 @@ def test_a_missing_posting_stops_before_the_server(config, api, apis, tmp_path):
     assert api.calls == []
 
 
-def test_a_failure_is_reported_on_stderr_with_its_request(posting, config, api, apis, tmp_path,
-                                                          capsys):
+def test_a_failure_is_reported_on_stderr_with_its_request(posting, config, api, apis, tmp_path, capsys):
     api.fail_on = "analyze"
     assert analysis_mode.run(config, posting, tmp_path / "out", output_format="folder") == 1
 
@@ -115,22 +111,21 @@ def test_a_failure_is_reported_on_stderr_with_its_request(posting, config, api, 
     assert not (tmp_path / "out").exists()
 
 
-def test_the_server_s_log_lines_show_on_stderr_with_verbose_only(posting, config, apis,
-                                                                 tmp_path, capsys):
+def test_the_server_s_log_lines_show_on_stderr_with_verbose_only(posting, config, apis, tmp_path, capsys):
     analysis_mode.run(config, posting, tmp_path / "out")
     assert LOG_LINE not in capsys.readouterr().err
     analysis_mode.run(replace(config, verbose=True), posting, tmp_path / "out")
     assert f"  v11 {LOG_LINE}" in capsys.readouterr().err
 
 
-def test_out_defaults_to_incoming_under_the_data_dir(posting, servers_dir, server, apis,
-                                                     tmp_path, monkeypatch, capsys):
+def test_out_defaults_to_incoming_under_the_data_dir(posting, servers_dir, server, apis, tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("ATS_CONFIG", raising=False)
     write_cv_toml(servers_dir, ["v11"])
 
-    code = cli.main(["analysis", "--in", str(posting), "--data-dir", str(servers_dir),
-                     "--output-format", "folder", "-v"])
+    code = cli.main(
+        ["analysis", "--in", str(posting), "--data-dir", str(servers_dir), "--output-format", "folder", "-v"]
+    )
 
     assert code == 0
     assert (servers_dir / "incoming" / JOB / "analysis.json").is_file()
@@ -139,12 +134,10 @@ def test_out_defaults_to_incoming_under_the_data_dir(posting, servers_dir, serve
     assert captured.err.startswith("version "), "-v says which build on stderr"
 
 
-def test_server_ver_on_the_command_line(posting, servers_dir, server, apis, tmp_path,
-                                        monkeypatch, capsys):
+def test_server_ver_on_the_command_line(posting, servers_dir, server, apis, tmp_path, monkeypatch, capsys):
     make_server(servers_dir, "v05")
     write_cv_toml(servers_dir, ["v11", "v05"])
 
-    assert cli.main(["analysis", "--in", str(posting), "--data-dir", str(servers_dir),
-                     "--server-ver", "v05"]) == 0
+    assert cli.main(["analysis", "--in", str(posting), "--data-dir", str(servers_dir), "--server-ver", "v05"]) == 0
     assert apis["http://v05.invalid"].calls == ["analyze"]
     assert apis["http://v11.invalid"].calls == []

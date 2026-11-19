@@ -195,16 +195,18 @@ class WorkingProcessor:
             return self._to_error(folder, end, failed=True)
         return self.deliver(folder, end, record_row=not queued.had_pdf, written=queued.written)
 
-    def deliver(self, folder: Path, log: TaggedLog, *, record_row: bool,
-                written: Sequence[str] = ()) -> Path:
+    def deliver(self, folder: Path, log: TaggedLog, *, record_row: bool, written: Sequence[str] = ()) -> Path:
         """Finished: ``CV/<day>/``. A re-run gets no spreadsheet row; a new
         one points at the default server's PDF, else the first written."""
         delivered = self._file(folder, log, self.workspace.deliver, "delivered")
         if record_row:
             try:
-                self.tracker.record(delivered, read_analysis(delivered),
-                                    self.writer.pdf(delivered, written),
-                                    self.writer.generator(delivered, written))
+                self.tracker.record(
+                    delivered,
+                    read_analysis(delivered),
+                    self.writer.pdf(delivered, written),
+                    self.writer.generator(delivered, written),
+                )
             except Exception as exc:
                 # The CV is delivered and was paid for; a broken or locked
                 # spreadsheet is bookkeeping, and must not undo that or stop
@@ -281,8 +283,7 @@ class WorkingProcessor:
         log.step(f"queued for its CV: {', '.join(self.generations)}")
         log.append_to(folder / LOG_FILENAME)
         with self._lock:
-            self._queued[folder] = _Queued(left=set(self.generations),
-                                           had_pdf=any(folder.glob("cv_*.pdf")))
+            self._queued[folder] = _Queued(left=set(self.generations), had_pdf=any(folder.glob("cv_*.pdf")))
         for lane in self.generations.values():
             lane.put(folder)
 

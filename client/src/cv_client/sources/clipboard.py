@@ -50,9 +50,7 @@ def clipboard_error() -> Optional[str]:
         return f"{probe[0]} could not be run: {exc}"
 
     stderr = (done.stderr or "").strip()
-    if done.returncode != 0 and any(
-        phrase in stderr.lower() for phrase in UNREACHABLE_DISPLAY
-    ):
+    if done.returncode != 0 and any(phrase in stderr.lower() for phrase in UNREACHABLE_DISPLAY):
         return f"{probe[0]} cannot reach the display: {stderr}"
     return None
 

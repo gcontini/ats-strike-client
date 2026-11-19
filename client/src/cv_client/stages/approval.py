@@ -32,8 +32,7 @@ MAX_URL_CHARS = 300
 
 PROMPT = "y = write the CV (or paste the posting URL), d = discard, s/n = next, q = quit"
 HINT = "⚠ y, d, s/n or q — or paste the posting URL (at most 300 characters)."
-IDLE_HINT = ("nothing is waiting for you. q = let the running work finish, then quit; "
-             "Ctrl-C = stop now")
+IDLE_HINT = "nothing is waiting for you. q = let the running work finish, then quit; Ctrl-C = stop now"
 
 
 @dataclass(frozen=True)
@@ -173,5 +172,4 @@ class HumanApproval:
             return None
 
 
-__all__ = ["Answer", "parse_answer", "Reviewer", "TerminalReviewer", "HumanApproval",
-           "PROMPT", "MAX_URL_CHARS"]
+__all__ = ["Answer", "parse_answer", "Reviewer", "TerminalReviewer", "HumanApproval", "PROMPT", "MAX_URL_CHARS"]

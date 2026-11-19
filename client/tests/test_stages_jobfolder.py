@@ -61,8 +61,9 @@ def job_folder(tmp_path, **files):
 
 
 def test_classify_reads_the_folder(tmp_path):
-    folder = job_folder(tmp_path, job_description__txt="a posting",
-                        analysis__json=analysis(should_apply="CHECK").model_dump_json())
+    folder = job_folder(
+        tmp_path, job_description__txt="a posting", analysis__json=analysis(should_apply="CHECK").model_dump_json()
+    )
     assert classify(folder)[0] == "approve"
     write_approval(folder, "APPROVED")
     assert classify(folder)[0] == "generate"
@@ -78,8 +79,9 @@ def test_an_analysis_that_does_not_validate_is_an_error_that_says_so(tmp_path):
 
 def test_a_folder_holding_its_cv_is_written_like_any_other(tmp_path):
     """Each server is sent what it stored, and renders it: not the client's call."""
-    folder = job_folder(tmp_path, job_description__txt="a posting",
-                        analysis__json=analysis(should_apply="YES").model_dump_json())
+    folder = job_folder(
+        tmp_path, job_description__txt="a posting", analysis__json=analysis(should_apply="YES").model_dump_json()
+    )
     (folder / "v11").mkdir()
     (folder / "v11" / "cv.json").write_text("{}")
     assert classify(folder)[0] == "generate"
@@ -93,13 +95,25 @@ def test_a_folder_holding_only_a_subfolder_is_an_error(tmp_path):
 
 def test_an_analysis_keeps_what_the_client_does_not_know_and_adds_nothing(tmp_path):
     """Another server's analysis has its own fields; writing it back loses none."""
-    folder = job_folder(tmp_path, analysis__json=json.dumps({
-        "job_title": "Head of IT", "company_name": "Acme", "should_apply": "YES",
-        "company_evaluation": "a 0.5 field"}))
+    folder = job_folder(
+        tmp_path,
+        analysis__json=json.dumps(
+            {
+                "job_title": "Head of IT",
+                "company_name": "Acme",
+                "should_apply": "YES",
+                "company_evaluation": "a 0.5 field",
+            }
+        ),
+    )
     parsed = read_analysis(folder)
     parsed.posting_url = "https://jobs.example/1"
     write_analysis(folder, parsed)
 
     assert json.loads((folder / "analysis.json").read_text()) == {
-        "job_title": "Head of IT", "company_name": "Acme", "should_apply": "YES",
-        "company_evaluation": "a 0.5 field", "posting_url": "https://jobs.example/1"}
+        "job_title": "Head of IT",
+        "company_name": "Acme",
+        "should_apply": "YES",
+        "company_evaluation": "a 0.5 field",
+        "posting_url": "https://jobs.example/1",
+    }

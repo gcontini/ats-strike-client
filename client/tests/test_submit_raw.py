@@ -82,8 +82,7 @@ def test_log_lines_show_with_verbose_only(here, config, apis, capsys):
     submit_raw.run(config, here, [])
     assert "Σ 1 model call(s)" not in capsys.readouterr().out
     submit_raw.run(replace(config, verbose=True), here, [])
-    assert "  v11 2026-01-15T09:00:05 INFO    [run] Σ 1 model call(s)" in (
-        capsys.readouterr().out)
+    assert "  v11 2026-01-15T09:00:05 INFO    [run] Σ 1 model call(s)" in (capsys.readouterr().out)
 
 
 def test_new_writes_the_cv_again(here, config, api, apis):

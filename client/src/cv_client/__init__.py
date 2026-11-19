@@ -25,5 +25,18 @@ try:
 except PackageNotFoundError:  # a source tree that was never installed
     __version__ = "unknown"
 
-__all__ = ["api", "cli", "config", "cvjob", "jdanalysis", "joblog", "modes", "servers",
-           "sources", "stages", "tracking", "ui", "workspace"]
+__all__ = [
+    "api",
+    "cli",
+    "config",
+    "cvjob",
+    "jdanalysis",
+    "joblog",
+    "modes",
+    "servers",
+    "sources",
+    "stages",
+    "tracking",
+    "ui",
+    "workspace",
+]

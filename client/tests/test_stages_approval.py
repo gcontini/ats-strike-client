@@ -32,27 +32,35 @@ class Scripted:
 
 
 def check_posting(processor, company="Acme Corp"):
-    folder = processor.submit(JD_TEXT, analysis(should_apply="CHECK", company_name=company),
-                              TaggedLog(processor.console, "posting.txt"))
+    folder = processor.submit(
+        JD_TEXT, analysis(should_apply="CHECK", company_name=company), TaggedLog(processor.console, "posting.txt")
+    )
     return folder
 
 
 def loop(processor, console, reviewer, keyboard=None, *, ask=True):
-    return HumanApproval(processor, reviewer, keyboard or typed(), console, ask=ask,
-                         poll_seconds=0.01)
+    return HumanApproval(processor, reviewer, keyboard or typed(), console, ask=ask, poll_seconds=0.01)
 
 
 # --- what counts as an answer ----------------------------------------------------
 @pytest.mark.parametrize(
     "text, expected",
     [
-        ("y", Answer("approve")), (" YES ", Answer("approve")),
-        ("d", Answer("discard")), ("discard", Answer("discard")),
-        ("s", Answer("skip")), ("n", Answer("skip")), ("next", Answer("skip")),
-        ("q", Answer("quit")), ("QUIT", Answer("quit")),
+        ("y", Answer("approve")),
+        (" YES ", Answer("approve")),
+        ("d", Answer("discard")),
+        ("discard", Answer("discard")),
+        ("s", Answer("skip")),
+        ("n", Answer("skip")),
+        ("next", Answer("skip")),
+        ("q", Answer("quit")),
+        ("QUIT", Answer("quit")),
         ("https://jobs.example/42", Answer("approve", url="https://jobs.example/42")),
         ("https://jobs.example/" + "x" * 300, None),
-        ("", None), ("yy", None), ("maybe", None), ("42", None),
+        ("", None),
+        ("yy", None),
+        ("maybe", None),
+        ("42", None),
     ],
 )
 def test_parse_answer(text, expected):
@@ -71,15 +79,15 @@ def test_y_approves_and_queues_it(processor, console):
 
 def test_a_pasted_url_approves_it_and_is_kept(processor, console):
     folder = check_posting(processor)
-    loop(processor, console, Scripted(Answer("approve", url="https://jobs.example/42"))
-         ).review_one(processor.approvals.get_nowait())
+    loop(processor, console, Scripted(Answer("approve", url="https://jobs.example/42"))).review_one(
+        processor.approvals.get_nowait()
+    )
     assert read_analysis(folder).posting_url == "https://jobs.example/42"
 
 
 def test_d_discards_it(processor, console, workspace):
     folder = check_posting(processor)
-    loop(processor, console, Scripted(Answer("discard"))
-         ).review_one(processor.approvals.get_nowait())
+    loop(processor, console, Scripted(Answer("discard"))).review_one(processor.approvals.get_nowait())
 
     assert not folder.exists()
     [kept] = workspace.discarded.glob("*/Acme_Corp_Head_of_IT")
@@ -100,8 +108,7 @@ def test_a_posting_broken_while_it_waited_is_filed_not_fatal(processor, console,
     (folder / "analysis.json").write_text("{}")
     reviewer = Scripted()
 
-    assert loop(processor, console, reviewer).review_one(
-        processor.approvals.get_nowait()) is True
+    assert loop(processor, console, reviewer).review_one(processor.approvals.get_nowait()) is True
     assert reviewer.shown == []
     [filed] = workspace.error.glob("*/Acme_Corp_Head_of_IT")
     assert "cannot be shown any more" in (filed / "log.log").read_text()
@@ -178,8 +185,9 @@ def test_the_terminal_asks_again_until_it_gets_an_answer(capsys):
 def test_what_was_typed_before_the_question_is_thrown_away():
     """A second y meant for the last posting must not approve this one."""
     keyboard = typed("y")
-    assert TerminalReviewer(keyboard, poll_seconds=0.01).review(JD_TEXT, analysis()) \
-        == Answer("quit"), "the y is gone; only the end of input is left"
+    assert TerminalReviewer(keyboard, poll_seconds=0.01).review(JD_TEXT, analysis()) == Answer("quit"), (
+        "the y is gone; only the end of input is left"
+    )
 
 
 def test_the_keyboard_reports_the_end_of_input_once():

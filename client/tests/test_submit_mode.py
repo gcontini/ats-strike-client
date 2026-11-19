@@ -64,8 +64,7 @@ def test_an_analysis_file_skips_detection_and_analysis(served, config, jd, works
     assert given.exists()
 
 
-def test_an_invalid_analysis_file_stops_before_anything(served, config, jd, workspace, tmp_path,
-                                                        capsys):
+def test_an_invalid_analysis_file_stops_before_anything(served, config, jd, workspace, tmp_path, capsys):
     given = tmp_path / "analysis.json"
     given.write_text("{}", encoding="utf-8")
 
@@ -79,8 +78,7 @@ def test_an_invalid_analysis_file_stops_before_anything(served, config, jd, work
 
 def test_new_drops_the_run_the_server_has_first(served, config, jd, workspace):
     assert submit.run(config, jd, workspace.root, assume_yes=True, new=True) == 0
-    assert served.calls == ["detect", "analyze", "acknowledge", "create_cv", "events",
-                            "acknowledge"]
+    assert served.calls == ["detect", "analyze", "acknowledge", "create_cv", "events", "acknowledge"]
     assert entries(workspace.cv) == ["Acme_Corp_Head_of_IT"]
 
 
@@ -91,7 +89,8 @@ def test_a_failed_cv_makes_the_exit_code_1(served, config, jd, workspace):
 
 
 def test_two_servers_write_one_after_the_other_and_one_analysis_is_made(
-        served, apis, config, servers_dir, jd, workspace):
+    served, apis, config, servers_dir, jd, workspace
+):
     v05 = make_server(servers_dir, "v05")
     config = replace(config, targets=(config.default, v05))
 
@@ -103,8 +102,7 @@ def test_two_servers_write_one_after_the_other_and_one_analysis_is_made(
     assert len(list(delivered.glob("cv_*.pdf"))) == 2
 
 
-def test_one_server_failing_still_delivers_and_exits_1(served, apis, config, servers_dir, jd,
-                                                       workspace):
+def test_one_server_failing_still_delivers_and_exits_1(served, apis, config, servers_dir, jd, workspace):
     v05 = make_server(servers_dir, "v05")
     apis["http://v05.invalid"].fail_on = "create_cv"
     config = replace(config, targets=(config.default, v05))
@@ -115,8 +113,12 @@ def test_one_server_failing_still_delivers_and_exits_1(served, apis, config, ser
 
 def test_leftovers_are_left_alone(served, config, jd, workspace):
     """A one-off run must not start by asking about an earlier one."""
-    make_job(workspace.working, "Left_Over", approval="APPROVED",
-             **{"analysis.json": analysis(company_name="Other Co").model_dump_json()})
+    make_job(
+        workspace.working,
+        "Left_Over",
+        approval="APPROVED",
+        **{"analysis.json": analysis(company_name="Other Co").model_dump_json()},
+    )
     assert submit.run(config, jd, workspace.root, assume_yes=True) == 0
     assert [p.name for p in workspace.working.iterdir()] == ["Left_Over"]
 
@@ -124,8 +126,7 @@ def test_leftovers_are_left_alone(served, config, jd, workspace):
 # --- the question, on the terminal ------------------------------------------------------
 def in_background(config, jd, workspace):
     result: dict = {}
-    thread = threading.Thread(
-        target=lambda: result.update(code=submit.run(config, jd, workspace.root)), daemon=True)
+    thread = threading.Thread(target=lambda: result.update(code=submit.run(config, jd, workspace.root)), daemon=True)
     thread.start()
     return thread, result
 
@@ -138,8 +139,7 @@ def wait_for(capsys, text):
         time.sleep(0.01)
 
 
-def test_you_are_asked_before_anything_is_spent(served, config, jd, workspace, typist,
-                                                 monkeypatch, capsys):
+def test_you_are_asked_before_anything_is_spent(served, config, jd, workspace, typist, monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", typist)
     thread, result = in_background(config, jd, workspace)
 
@@ -152,8 +152,7 @@ def test_you_are_asked_before_anything_is_spent(served, config, jd, workspace, t
     assert entries(workspace.cv) == ["Acme_Corp_Head_of_IT"]
 
 
-def test_quitting_leaves_the_posting_for_the_next_start(served, config, jd, workspace, typist,
-                                                       monkeypatch, capsys):
+def test_quitting_leaves_the_posting_for_the_next_start(served, config, jd, workspace, typist, monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", typist)
     thread, result = in_background(config, jd, workspace)
 

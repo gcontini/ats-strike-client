@@ -25,8 +25,16 @@ from ..workspace import Workspace
 from . import connect
 
 
-def run(config: Config, jd_file: Path, out: Path, *, analysis: Optional[Path] = None,
-        assume_yes: bool = False, track: bool = True, new: bool = False) -> int:
+def run(
+    config: Config,
+    jd_file: Path,
+    out: Path,
+    *,
+    analysis: Optional[Path] = None,
+    assume_yes: bool = False,
+    track: bool = True,
+    new: bool = False,
+) -> int:
     jd_file = Path(jd_file).expanduser()
     if not jd_file.is_file():
         fail(f"no such file: {jd_file}")
@@ -55,8 +63,11 @@ def run(config: Config, jd_file: Path, out: Path, *, analysis: Optional[Path] = 
     text = jd_file.read_bytes().decode("utf-8", errors="replace")
     intake = Intake(calls[config.default.name], working, confirmer, console)
     if not intake.take(text, jd_file.name, analysis=given):
-        print("⏹ stopped. The posting waits in working/, and is asked about again at "
-              "the next start of clipboard or watch.", flush=True)
+        print(
+            "⏹ stopped. The posting waits in working/, and is asked about again at "
+            "the next start of clipboard or watch.",
+            flush=True,
+        )
     for server in config.lanes():
         GenerationWorker(working, writer, console, server).drain()
     return 1 if working.failures else 0

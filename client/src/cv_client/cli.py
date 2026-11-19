@@ -66,13 +66,20 @@ def global_options() -> argparse.ArgumentParser:
     not overwrite a value given before the mode name.
     """
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--config", type=Path, default=argparse.SUPPRESS,
-                        help="Path to cv.toml.")
-    common.add_argument("--data-dir", type=Path, default=argparse.SUPPRESS,
-                        help="The folder that holds cv.toml (default: the current folder).")
-    common.add_argument("-v", "--verbose", action="store_true", default=argparse.SUPPRESS,
-                        help="Print what the server reports about each step it finishes, "
-                             "and every line it logs.")
+    common.add_argument("--config", type=Path, default=argparse.SUPPRESS, help="Path to cv.toml.")
+    common.add_argument(
+        "--data-dir",
+        type=Path,
+        default=argparse.SUPPRESS,
+        help="The folder that holds cv.toml (default: the current folder).",
+    )
+    common.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Print what the server reports about each step it finishes, and every line it logs.",
+    )
     return common
 
 
@@ -86,21 +93,29 @@ def available(names: Sequence[str], default: Optional[str]) -> str:
 
 def add_servers_flag(sub: argparse.ArgumentParser, servers: str) -> None:
     """``--server_ver``, repeatable: the servers that write CVs."""
-    sub.add_argument("--server_ver", "--server-ver", dest="server_ver", action="append",
-                     default=[], metavar="NAME",
-                     help="A [servers.<name>] section of cv.toml. Repeatable. "
-                          "Default: the default server." + servers)
+    sub.add_argument(
+        "--server_ver",
+        "--server-ver",
+        dest="server_ver",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="A [servers.<name>] section of cv.toml. Repeatable. Default: the default server." + servers,
+    )
 
 
 def add_server_flag(sub: argparse.ArgumentParser, servers: str) -> None:
     """``--server_ver``, once: the server to use instead of the default."""
-    sub.add_argument("--server_ver", "--server-ver", dest="server_ver", metavar="NAME",
-                     help="A [servers.<name>] section of cv.toml, used instead of the "
-                          "default." + servers)
+    sub.add_argument(
+        "--server_ver",
+        "--server-ver",
+        dest="server_ver",
+        metavar="NAME",
+        help="A [servers.<name>] section of cv.toml, used instead of the default." + servers,
+    )
 
 
-def build_parser(names: Sequence[str] = (), default: Optional[str] = None
-                 ) -> argparse.ArgumentParser:
+def build_parser(names: Sequence[str] = (), default: Optional[str] = None) -> argparse.ArgumentParser:
     """The parser; ``names`` and ``default`` are the servers ``--server_ver``
     lists in its help."""
     servers = available(names, default)
@@ -116,42 +131,50 @@ def build_parser(names: Sequence[str] = (), default: Optional[str] = None
     modes = parser.add_subparsers(dest="mode", required=True, metavar="MODE")
 
     def add_new_flag(sub: argparse.ArgumentParser) -> None:
-        sub.add_argument("--new", action="store_true",
-                         help="Write the CV again even if the server still has a run "
-                              "for the same posting (by default it is replayed).")
+        sub.add_argument(
+            "--new",
+            action="store_true",
+            help="Write the CV again even if the server still has a run "
+            "for the same posting (by default it is replayed).",
+        )
 
-    def add_job_flags(sub: argparse.ArgumentParser, *,
-                      yes_help: str = "Submit every valid posting without asking.") -> None:
-        sub.add_argument("--out", type=Path,
-                         help="Output folder (working/, error/, discarded/, CV/). "
-                              "Default: the current folder.")
-        sub.add_argument("--cover-letter", choices=COVER_LETTER_MODES,
-                         help="Also write a cover letter (default: no).")
+    def add_job_flags(
+        sub: argparse.ArgumentParser, *, yes_help: str = "Submit every valid posting without asking."
+    ) -> None:
+        sub.add_argument(
+            "--out", type=Path, help="Output folder (working/, error/, discarded/, CV/). Default: the current folder."
+        )
+        sub.add_argument("--cover-letter", choices=COVER_LETTER_MODES, help="Also write a cover letter (default: no).")
         sub.add_argument("--yes", action="store_true", help=yes_help)
-        sub.add_argument("--no-xlsx", action="store_true",
-                         help="Do not record delivered CVs in applications.xlsx.")
+        sub.add_argument("--no-xlsx", action="store_true", help="Do not record delivered CVs in applications.xlsx.")
         add_new_flag(sub)
         add_servers_flag(sub, servers)
 
-    clip = modes.add_parser("clipboard", help="Watch the clipboard for postings.",
-                              parents=[common])
+    clip = modes.add_parser("clipboard", help="Watch the clipboard for postings.", parents=[common])
     add_job_flags(clip)
 
-    watch = modes.add_parser("watch", help="Watch a folder for postings.",
-                              parents=[common])
-    watch.add_argument("--in", dest="inbox", type=Path,
-                       help="Folder to watch for job description files. "
-                            "Default: ./incoming (created if missing).")
-    add_job_flags(watch, yes_help="Never ask: YES postings get a CV, NO postings are "
-                                  "discarded, CHECK postings wait in working/ for a run "
-                                  "without --yes.")
+    watch = modes.add_parser("watch", help="Watch a folder for postings.", parents=[common])
+    watch.add_argument(
+        "--in",
+        dest="inbox",
+        type=Path,
+        help="Folder to watch for job description files. Default: ./incoming (created if missing).",
+    )
+    add_job_flags(
+        watch,
+        yes_help="Never ask: YES postings get a CV, NO postings are "
+        "discarded, CHECK postings wait in working/ for a run "
+        "without --yes.",
+    )
 
-    submit = modes.add_parser("submit", help="Process one job description file.",
-                              parents=[common])
+    submit = modes.add_parser("submit", help="Process one job description file.", parents=[common])
     submit.add_argument("jd_file", type=Path, help="The job description to process.")
-    submit.add_argument("analysis", nargs="?", type=Path,
-                        help="Its analysis.json, if you have one: skip detection "
-                             "and analysis and go straight to the CV.")
+    submit.add_argument(
+        "analysis",
+        nargs="?",
+        type=Path,
+        help="Its analysis.json, if you have one: skip detection and analysis and go straight to the CV.",
+    )
     add_job_flags(submit)
 
     raw = modes.add_parser(
@@ -160,40 +183,45 @@ def build_parser(names: Sequence[str] = (), default: Optional[str] = None
         parents=[common],
     )
     raw.add_argument("jd_file", type=Path, help="The job description to process.")
-    raw.add_argument("-o", "--output", type=Path, action="append", default=[],
-                     metavar="FILE",
-                     help="Write one output here: .pdf, .json or .tex. Repeatable. "
-                          "Without it, a PDF named after the job description.")
+    raw.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        action="append",
+        default=[],
+        metavar="FILE",
+        help="Write one output here: .pdf, .json or .tex. Repeatable. "
+        "Without it, a PDF named after the job description.",
+    )
     add_new_flag(raw)
     add_server_flag(raw, servers)
 
-    analysis = modes.add_parser("analysis", help="Analyse one job description. Nothing else.",
-                                parents=[common])
-    analysis.add_argument("--in", dest="jd_file", type=Path, required=True,
-                          help="The job description to analyse.")
-    analysis.add_argument("--output-format", choices=analysis_mode.OUTPUT_FORMATS,
-                          default="json",
-                          help="json: print the analysis on stdout. folder: write "
-                               "<Company>_<Title>/ with job_description.txt and analysis.json into "
-                               "--out, replacing one of the same name. Default: json.")
-    analysis.add_argument("--out", type=Path,
-                          help="Where --output-format folder writes. "
-                               "Default: <data-dir>/incoming (created if missing).")
+    analysis = modes.add_parser("analysis", help="Analyse one job description. Nothing else.", parents=[common])
+    analysis.add_argument("--in", dest="jd_file", type=Path, required=True, help="The job description to analyse.")
+    analysis.add_argument(
+        "--output-format",
+        choices=analysis_mode.OUTPUT_FORMATS,
+        default="json",
+        help="json: print the analysis on stdout. folder: write "
+        "<Company>_<Title>/ with job_description.txt and analysis.json into "
+        "--out, replacing one of the same name. Default: json.",
+    )
+    analysis.add_argument(
+        "--out",
+        type=Path,
+        help="Where --output-format folder writes. Default: <data-dir>/incoming (created if missing).",
+    )
     add_server_flag(analysis, servers)
 
-    render = modes.add_parser("render", help="Compile a cv.json or cv.tex into a PDF.",
-                              parents=[common])
+    render = modes.add_parser("render", help="Compile a cv.json or cv.tex into a PDF.", parents=[common])
     render.add_argument("source", type=Path, help="The .json document or .tex source.")
-    render.add_argument("--output", type=Path,
-                        help="Where to write the PDF (default: beside the input).")
+    render.add_argument("--output", type=Path, help="Where to write the PDF (default: beside the input).")
     add_server_flag(render, servers)
 
-    reset = modes.add_parser("reset", help="Delete every CV session the server still keeps.",
-                             parents=[common])
+    reset = modes.add_parser("reset", help="Delete every CV session the server still keeps.", parents=[common])
     add_servers_flag(reset, servers)
 
-    modes.add_parser("version", help="Print the version, and every server's.",
-                     parents=[common])
+    modes.add_parser("version", help="Print the version, and every server's.", parents=[common])
     return parser
 
 
@@ -205,8 +233,7 @@ ANALYSING_MODES = ("clipboard", "watch", "submit")
 def main(argv: Optional[List[str]] = None) -> int:
     # --config and --data-dir first, so --server_ver's help can list the servers.
     early, _ = global_options().parse_known_args(argv)
-    names, default = server_names(getattr(early, "config", None),
-                                  getattr(early, "data_dir", None))
+    names, default = server_names(getattr(early, "config", None), getattr(early, "data_dir", None))
     args = build_parser(names, default).parse_args(argv)
     flag = lambda name: getattr(args, name, None)  # noqa: E731 — SUPPRESS defaults
     named = flag("server_ver")
@@ -248,8 +275,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             return submit_raw_mode.run(config, args.jd_file, args.output, new=args.new)
         if args.mode == "analysis":
             out = args.out or (flag("data_dir") or Path.cwd()) / "incoming"
-            return analysis_mode.run(config, args.jd_file, out,
-                                     output_format=args.output_format)
+            return analysis_mode.run(config, args.jd_file, out, output_format=args.output_format)
 
         common = {"assume_yes": args.yes, "track": not args.no_xlsx, "new": args.new}
         out = args.out or Path.cwd()

@@ -1,7 +1,8 @@
 """The servers a CV is written with: one ``[servers.<name>]`` section each in ``cv.toml``.
 
-A section says where the server is, its token, its timeout, the ``[settings]``
-table forwarded to it untouched, and the folder that holds everything it is
+A section says where the server is, the pipeline it asks for there
+(``pipeline``, ``"v1"`` when left out), its token, its timeout, the
+``[settings]`` table forwarded to it untouched, and the folder that holds everything it is
 sent: your candidate files, any prompt, template or image you want instead of
 its own, and a ``cache/`` it fills itself. The client reads no file name in
 that folder: what the files mean is the server's business. Two sections may
@@ -35,6 +36,8 @@ class Server:
     name: str
     folder: Path
     url: str
+    #: The first segment of every pipeline path on the server: ``/v1/cv``.
+    pipeline: str = "v1"
     token: Optional[str] = None
     #: Analyses postings and writes the letter: ``default_server`` in ``cv.toml``.
     default: bool = False
@@ -67,6 +70,7 @@ def read_server(base: Path, name: str, raw: Any) -> Server:
         name=name,
         folder=folder,
         url=raw["url"],
+        pipeline=raw.get("pipeline", "v1"),
         token=raw.get("token") or None,
         timeout=float(raw.get("timeout", DEFAULT_TIMEOUT)),
         settings=dict(raw.get("settings") or {}),
@@ -98,21 +102,14 @@ def load_servers(
     default_server = None
     if default is not None:
         if default not in by_name:
-            raise ConfigError(
-                f"default_server {default}: no such server "
-                f"(configured: {', '.join(by_name) or 'none'})"
-            )
+            raise ConfigError(f"default_server {default}: no such server (configured: {', '.join(by_name) or 'none'})")
         default_server = by_name[default] = replace(by_name[default], default=True)
     for name in selected:
         if name not in by_name:
-            raise ConfigError(
-                f"--server_ver {name}: no such server "
-                f"(configured: {', '.join(by_name) or 'none'})"
-            )
+            raise ConfigError(f"--server_ver {name}: no such server (configured: {', '.join(by_name) or 'none'})")
     if default_server is None and (default_needed or not selected):
         raise ConfigError(
-            "no default_server is set in cv.toml"
-            + ("" if by_name else " (no server is configured at all)")
+            "no default_server is set in cv.toml" + ("" if by_name else " (no server is configured at all)")
         )
     targets = tuple(by_name[name] for name in selected) if selected else (default_server,)
     return targets, default_server

@@ -35,8 +35,7 @@ def filed(workspace, name):
     return entry
 
 
-def test_a_posting_is_analysed_handed_over_then_deleted(reader, inbox, workspace, processor,
-                                                         api):
+def test_a_posting_is_analysed_handed_over_then_deleted(reader, inbox, workspace, processor, api):
     (inbox / "posting.txt").write_text(JD_TEXT)
     scan(reader)
 
@@ -108,13 +107,12 @@ def test_a_posting_seen_before_is_still_removed(reader, inbox, workspace, capsys
 
 
 @pytest.mark.parametrize("where", ["cv", "discarded"])
-def test_a_known_job_posting_url_is_deleted_without_a_call(reader, inbox, workspace, api,
-                                                           capsys, where):
+def test_a_known_job_posting_url_is_deleted_without_a_call(reader, inbox, workspace, api, capsys, where):
     earlier = make_job(getattr(workspace, where) / day())
-    (earlier / "analysis.json").write_text(analysis(
-        posting_url="https://it.linkedin.com/jobs/view/4470889642/?refId=x").model_dump_json())
-    (inbox / "posting.txt").write_text(
-        "JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642/\n" + JD_TEXT)
+    (earlier / "analysis.json").write_text(
+        analysis(posting_url="https://it.linkedin.com/jobs/view/4470889642/?refId=x").model_dump_json()
+    )
+    (inbox / "posting.txt").write_text("JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642/\n" + JD_TEXT)
     scan(reader)
 
     assert api.calls == []
@@ -126,15 +124,14 @@ def test_a_known_job_posting_url_is_deleted_without_a_call(reader, inbox, worksp
 
 
 def test_a_known_job_posting_url_in_progress_is_deleted(reader, inbox, workspace, api):
-    (inbox / "first.txt").write_text(
-        "JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642/\n" + JD_TEXT)
+    (inbox / "first.txt").write_text("JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642/\n" + JD_TEXT)
     scan(reader)
     [folder] = workspace.working_jobs()
-    (folder / "analysis.json").write_text(analysis(
-        posting_url="https://www.linkedin.com/jobs/search/?currentJobId=4470889642").model_dump_json())
+    (folder / "analysis.json").write_text(
+        analysis(posting_url="https://www.linkedin.com/jobs/search/?currentJobId=4470889642").model_dump_json()
+    )
 
-    (inbox / "second.txt").write_text(
-        "JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642\n" + JD_TEXT)
+    (inbox / "second.txt").write_text("JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642\n" + JD_TEXT)
     api.calls.clear()
     scan(reader)
 
@@ -144,15 +141,13 @@ def test_a_known_job_posting_url_in_progress_is_deleted(reader, inbox, workspace
 
 def test_an_unknown_job_posting_url_is_analysed(reader, inbox, workspace, api):
     make_job(workspace.cv / day())
-    (inbox / "posting.txt").write_text(
-        "JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642/\n" + JD_TEXT)
+    (inbox / "posting.txt").write_text("JOB_POSTING: https://www.linkedin.com/jobs/view/4470889642/\n" + JD_TEXT)
     scan(reader)
 
     assert api.calls == ["detect", "analyze"]
 
 
-def test_an_analysed_folder_is_handed_over_whole_then_removed(reader, inbox, workspace,
-                                                              processor, api):
+def test_an_analysed_folder_is_handed_over_whole_then_removed(reader, inbox, workspace, processor, api):
     make_job(inbox, "old_job", should_apply="YES", **{"log.log": "an earlier run\n"})
     scan(reader)
 
@@ -193,8 +188,7 @@ def test_hidden_entries_are_left_alone(reader, inbox, workspace, api):
 
 def test_a_file_still_being_written_waits(reader, inbox, api, monkeypatch):
     sizes = iter(range(100))
-    monkeypatch.setattr("cv_client.stages.inbox._footprint",
-                        lambda path: (1, next(sizes)))
+    monkeypatch.setattr("cv_client.stages.inbox._footprint", lambda path: (1, next(sizes)))
     (inbox / "posting.txt").write_text(JD_TEXT)
     scan(reader)
     assert api.calls == []

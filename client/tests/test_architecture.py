@@ -36,12 +36,21 @@ def test_the_client_never_imports_the_server_or_the_pipeline():
 
 def test_the_client_carries_no_server_side_dependency():
     """No LaTeX, no model SDK, no templating in the shipped executable."""
-    forbidden = {"openai", "jinja2", "pypdf", "fastapi", "uvicorn", "subprocess",
-                 "langchain_core", "langchain_openai", "langchain_deepseek", "langgraph"}
+    forbidden = {
+        "openai",
+        "jinja2",
+        "pypdf",
+        "fastapi",
+        "uvicorn",
+        "subprocess",
+        "langchain_core",
+        "langchain_openai",
+        "langchain_deepseek",
+        "langgraph",
+    }
     assert not (imports_of(CLIENT) & forbidden - {"subprocess"})
     # subprocess is allowed in exactly one place: probing the clipboard helper.
-    users = [p.name for p in CLIENT.rglob("*.py")
-             if "import subprocess" in p.read_text(encoding="utf-8")]
+    users = [p.name for p in CLIENT.rglob("*.py") if "import subprocess" in p.read_text(encoding="utf-8")]
     assert users == ["clipboard.py"]
 
 
@@ -53,8 +62,7 @@ def client_modules_used_by(subpackage: Path) -> Set[str]:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 names = [alias.name.split(".") for alias in node.names]
-                found.update(parts[1] for parts in names
-                             if parts[0] == "cv_client" and len(parts) > 1)
+                found.update(parts[1] for parts in names if parts[0] == "cv_client" and len(parts) > 1)
             elif isinstance(node, ast.ImportFrom):
                 parts = (node.module or "").split(".")
                 if node.level == 0 and parts[0] == "cv_client" and len(parts) > 1:

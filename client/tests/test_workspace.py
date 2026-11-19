@@ -181,8 +181,7 @@ def test_a_log_line_goes_into_the_job_log_under_the_server_s_name(job, v05):
 
 
 def test_a_step_goes_into_the_server_s_own_subfolder(job, v05):
-    target = JobFiles(job, v05).store(item("CV", "step", "steps/key_points.json", "[]"),
-                                      JobLog())
+    target = JobFiles(job, v05).store(item("CV", "step", "steps/key_points.json", "[]"), JobLog())
     assert target == job / "v05" / "steps" / "key_points.json"
     assert target.read_text() == "[]"
 
@@ -205,13 +204,11 @@ def test_after_the_pdf_the_pack_s_images_go_beside_the_tex(job, v11):
     (v11.folder / "cache").mkdir()
     (v11.folder / "cache" / "deep.png").write_bytes(b"not top level")
     JobFiles(job, v11).store(item("CV", "cv", "cv.pdf", PDF), JobLog())
-    assert sorted(p.name for p in (job / "v11").iterdir()) == [
-        "candidate_signature.png", "logo.jpeg"]
+    assert sorted(p.name for p in (job / "v11").iterdir()) == ["candidate_signature.png", "logo.jpeg"]
 
 
 def test_a_cache_step_goes_into_the_server_folder(job, v05):
-    target = JobFiles(job, v05).store(item("CACHE", "step", "steps/pool.json", "[]"),
-                                      JobLog())
+    target = JobFiles(job, v05).store(item("CACHE", "step", "steps/pool.json", "[]"), JobLog())
     assert target == v05.folder / "cache" / "steps" / "pool.json"
 
 
@@ -222,8 +219,7 @@ def test_a_cache_log_line_is_appended_to_the_cache_log(job, v05):
     assert (v05.folder / "cache" / "log.log").read_text() == "one\ntwo\n"
 
 
-@pytest.mark.parametrize("location, type", [("CV", "audio"), ("ELSEWHERE", "step"),
-                                            ("CACHE", "cv")])
+@pytest.mark.parametrize("location, type", [("CV", "audio"), ("ELSEWHERE", "step"), ("CACHE", "cv")])
 def test_anything_else_is_skipped_with_a_line(job, v05, location, type):
     log = JobLog()
     assert JobFiles(job, v05).store(item(location, type, "a.json"), log) is None
@@ -231,8 +227,9 @@ def test_anything_else_is_skipped_with_a_line(job, v05, location, type):
     assert sorted(p.name for p in job.iterdir()) == ["analysis.json", "job_description.txt"]
 
 
-@pytest.mark.parametrize("name", ["../escape.json", "steps/../../escape.json",
-                                  "/etc/passwd", "C:/x.json", "a\\b.json", ""])
+@pytest.mark.parametrize(
+    "name", ["../escape.json", "steps/../../escape.json", "/etc/passwd", "C:/x.json", "a\\b.json", ""]
+)
 def test_a_name_that_would_leave_its_folder_is_skipped(job, v05, name):
     log = JobLog()
     assert JobFiles(job, v05).store(item("CV", "step", name), log) is None
@@ -249,7 +246,11 @@ def test_what_a_server_is_sent_is_the_posting_its_analysis_and_its_own_files(job
     (job / "log.log").write_text("not sent")
 
     assert sorted(JobFiles(job, v05).outgoing()) == [
-        "analysis.json", "cv.json", "job_description.txt", "steps/key_points.json"]
+        "analysis.json",
+        "cv.json",
+        "job_description.txt",
+        "steps/key_points.json",
+    ]
 
 
 def test_a_bare_posting_is_sent_as_jd_txt_alone(tmp_path, v05):

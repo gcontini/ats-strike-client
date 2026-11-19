@@ -25,8 +25,9 @@ from ..workspace import Workspace
 from . import connect
 
 
-def run(config: Config, inbox: Optional[Path], out: Path, *, assume_yes: bool = False,
-        track: bool = True, new: bool = False) -> int:
+def run(
+    config: Config, inbox: Optional[Path], out: Path, *, assume_yes: bool = False, track: bool = True, new: bool = False
+) -> int:
     if inbox is None:
         inbox = Path.cwd() / "incoming"
         warn(f"no --in given, watching {inbox}")
@@ -48,8 +49,7 @@ def run(config: Config, inbox: Optional[Path], out: Path, *, assume_yes: bool = 
     console = Console(verbose=config.verbose)
     calls = connect(config.servers(), verbose=config.verbose)
     writer = CvWriter(calls, config, new=new)
-    working = WorkingProcessor(workspace, writer, build_tracker(workspace.root, track), console,
-                               ask=ask)
+    working = WorkingProcessor(workspace, writer, build_tracker(workspace.root, track), console, ask=ask)
     keyboard = Keyboard(sys.stdin)
     approval = HumanApproval(working, TerminalReviewer(keyboard), keyboard, console, ask=ask)
     background = {"inbox": InputProcessor(inbox, calls[config.default.name], working, console)}
@@ -58,14 +58,19 @@ def run(config: Config, inbox: Optional[Path], out: Path, *, assume_yes: bool = 
     watcher = Watcher(working, approval.run, background, keyboard, console)
 
     print(f"👀 watching {inbox}. Output: {workspace.root}", flush=True)
-    print("   Drop postings (.txt) or analysed job folders in. "
-          "q = let the running work finish, then quit. Ctrl-C = stop now.", flush=True)
+    print(
+        "   Drop postings (.txt) or analysed job folders in. "
+        "q = let the running work finish, then quit. Ctrl-C = stop now.",
+        flush=True,
+    )
     if assume_yes:
-        print("   --yes: nothing is asked. CHECK postings wait in working/ for a run "
-              "without --yes.", flush=True)
+        print("   --yes: nothing is asked. CHECK postings wait in working/ for a run without --yes.", flush=True)
     try:
         return watcher.run()
     except KeyboardInterrupt:
-        print("\n⏹ stopped now. Anything in working/ is picked up at the next start, "
-              "anything left in the input folder is read again.", flush=True)
+        print(
+            "\n⏹ stopped now. Anything in working/ is picked up at the next start, "
+            "anything left in the input folder is read again.",
+            flush=True,
+        )
         return 0

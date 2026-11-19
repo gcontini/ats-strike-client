@@ -19,6 +19,6 @@ from ..stages.calls import Calls
 def connect(servers: Iterable[Server], *, verbose: bool = False) -> Dict[str, Calls]:
     """Server name -> its calls, over HTTP."""
     return {
-        server.name: Calls(server, HttpApi(server.url, token=server.token, verbose=verbose))
+        server.name: Calls(server, HttpApi(server.url, pipeline=server.pipeline, token=server.token, verbose=verbose))
         for server in servers
     }

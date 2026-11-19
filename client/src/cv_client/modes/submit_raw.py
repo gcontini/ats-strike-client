@@ -55,8 +55,9 @@ def run(config: Config, jd_file: Path, outputs: List[Path], *, new: bool = False
     [server] = config.targets
     calls = connect([server], verbose=config.verbose)[server.name]
     try:
-        write_cv(calls.api, server, {JD_FILE: jd_file.read_bytes()}, say=_say, store=store,
-                 new=new, verbose=config.verbose)
+        write_cv(
+            calls.api, server, {JD_FILE: jd_file.read_bytes()}, say=_say, store=store, new=new, verbose=config.verbose
+        )
     except CVError as exc:
         where = f" (request {exc.request_id})" if exc.request_id else ""
         fail(f"{exc}{where}")

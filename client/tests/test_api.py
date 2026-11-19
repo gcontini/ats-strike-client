@@ -12,19 +12,20 @@ import httpx
 import pytest
 
 from cv_client.api import CVError, HttpApi
+from cv_client.servers import read_server
 
 
 def _health(protocol=None) -> httpx.Response:
-    data = {"status": "ok", "version": "1.0.4", "pdflatex": True, "models": {},
-            "auth_required": False}
+    data = {"status": "ok", "version": "1.0.4", "pdflatex": True, "models": {}, "auth_required": False}
     if protocol is not None:
         data["protocol"] = protocol
     return httpx.Response(200, json={"request_id": "r1", "ok": True, "data": data})
 
 
 def _client_reporting(protocol) -> httpx.Client:
-    return httpx.Client(transport=httpx.MockTransport(lambda request: _health(protocol)),
-                        base_url="http://server.invalid")
+    return httpx.Client(
+        transport=httpx.MockTransport(lambda request: _health(protocol)), base_url="http://server.invalid"
+    )
 
 
 def test_another_protocol_stops_before_the_first_call():
@@ -72,19 +73,22 @@ class Broken(httpx.SyncByteStream):
 
 def _server(seen: list, *, events=None, status: int = 200) -> httpx.Client:
     """/healthz on protocol 2; everything else recorded and answered."""
+
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/healthz":
             return _health(2)
         seen.append(request)
         if request.url.path.endswith("/events"):
             if status != 200:
-                return httpx.Response(status, json={"request_id": "r", "ok": False,
-                                                    "error": "unknown_request: no CV session"})
-            return httpx.Response(200, headers={"content-type": "text/event-stream"},
-                                  stream=events or httpx.ByteStream(STREAM))
-        return httpx.Response(200, json={"request_id": "r", "ok": True,
-                                         "data": {"reattached": False, "deleted": 1,
-                                                  "running": 0}})
+                return httpx.Response(
+                    status, json={"request_id": "r", "ok": False, "error": "unknown_request: no CV session"}
+                )
+            return httpx.Response(
+                200, headers={"content-type": "text/event-stream"}, stream=events or httpx.ByteStream(STREAM)
+            )
+        return httpx.Response(
+            200, json={"request_id": "r", "ok": True, "data": {"reattached": False, "deleted": 1, "running": 0}}
+        )
 
     return httpx.Client(transport=httpx.MockTransport(handler), base_url="http://server.invalid")
 
@@ -132,12 +136,19 @@ def test_a_cv_job_is_sent_under_its_session_id():
 def test_every_file_is_a_part_named_by_its_path_and_settings_go_as_json():
     seen: list = []
     api = HttpApi("http://server.invalid", client=_server(seen))
-    api.create_cv({"candidate_profile.json": b"{}", "cache/steps/pool.json": b"[]"},
-                  {"job_description.txt": b"posting", "steps/key_points.json": b"[]"},
-                  {"pages": 2, "extra_body": {"cv": {"temperature": 0.4}}}, "abc123")
+    api.create_cv(
+        {"candidate_profile.json": b"{}", "cache/steps/pool.json": b"[]"},
+        {"job_description.txt": b"posting", "steps/key_points.json": b"[]"},
+        {"pages": 2, "extra_body": {"cv": {"temperature": 0.4}}},
+        "abc123",
+    )
     body = seen[0].content
-    for part, name in (("pack", "candidate_profile.json"), ("pack", "cache/steps/pool.json"),
-                       ("job", "job_description.txt"), ("job", "steps/key_points.json")):
+    for part, name in (
+        ("pack", "candidate_profile.json"),
+        ("pack", "cache/steps/pool.json"),
+        ("job", "job_description.txt"),
+        ("job", "steps/key_points.json"),
+    ):
         assert f'name="{part}"; filename="{name}"'.encode() in body, name
     settings = body.split(b'name="settings"\r\n\r\n', 1)[1].split(b"\r\n", 1)[0]
     assert json.loads(settings) == {"pages": 2, "extra_body": {"cv": {"temperature": 0.4}}}
@@ -155,3 +166,12 @@ def test_a_reset_has_to_say_all():
     api = HttpApi("http://server.invalid", client=_server(seen))
     assert api.reset().data.deleted == 1
     assert (seen[0].method, seen[0].url.path, seen[0].url.query) == ("DELETE", "/v1/cv", b"all=")
+
+
+def test_a_section_with_pipeline_v2_sends_v2_paths(tmp_path):
+    (tmp_path / "v2").mkdir()
+    server = read_server(tmp_path, "v2", {"folder": "v2", "url": "http://server.invalid", "pipeline": "v2"})
+    seen: list = []
+    api = HttpApi(server.url, pipeline=server.pipeline, client=_server(seen))
+    api.create_cv({}, {"job_description.txt": b"posting"}, {}, "abc123")
+    assert seen[0].url.path == "/v2/cv"

@@ -86,11 +86,11 @@ class CVApi(Protocol):
 
     def detect(self, job: Files) -> Envelope[Detection]: ...
 
-    def analyze(self, pack: Files, job: Files, settings: Mapping[str, Any]
-                ) -> Envelope[Analysed]: ...
+    def analyze(self, pack: Files, job: Files, settings: Mapping[str, Any]) -> Envelope[Analysed]: ...
 
-    def create_cv(self, pack: Files, job: Files, settings: Mapping[str, Any],
-                  request_id: str) -> Envelope[CVSession]: ...
+    def create_cv(
+        self, pack: Files, job: Files, settings: Mapping[str, Any], request_id: str
+    ) -> Envelope[CVSession]: ...
 
     def events(self, request_id: str, after: int = 0) -> Iterator[Event]: ...
 
@@ -98,11 +98,9 @@ class CVApi(Protocol):
 
     def reset(self) -> Envelope[Cleanup]: ...
 
-    def render(self, pack: Files, job: Files, settings: Mapping[str, Any]
-               ) -> Envelope[Rendered]: ...
+    def render(self, pack: Files, job: Files, settings: Mapping[str, Any]) -> Envelope[Rendered]: ...
 
-    def letter(self, pack: Files, job: Files, settings: Mapping[str, Any]
-               ) -> Envelope[Letter]: ...
+    def letter(self, pack: Files, job: Files, settings: Mapping[str, Any]) -> Envelope[Letter]: ...
 
 
 @dataclass
@@ -110,6 +108,8 @@ class HttpApi:
     """:class:`CVApi` over HTTP."""
 
     base_url: str
+    #: The pipeline asked for: the first segment of every path but ``/healthz``.
+    pipeline: str = "v1"
     token: Optional[str] = None
     #: Injection point for tests: a client that reaches the app in-process,
     #: so both halves are exercised together with no socket.
@@ -140,18 +140,23 @@ class HttpApi:
 
     def detect(self, job: Files) -> Envelope[Detection]:
         self._ensure_healthy()
-        return self._send("POST", "/v1/jd/detect", Detection, **_parts({}, job, {}))
+        return self._send("POST", f"/{self.pipeline}/jd/detect", Detection, **_parts({}, job, {}))
 
     def analyze(self, pack: Files, job: Files, settings: Mapping[str, Any]) -> Envelope[Analysed]:
         self._ensure_healthy()
-        return self._send("POST", "/v1/jd/analysis", Analysed, **_parts(pack, job, settings))
+        return self._send("POST", f"/{self.pipeline}/jd/analysis", Analysed, **_parts(pack, job, settings))
 
-    def create_cv(self, pack: Files, job: Files, settings: Mapping[str, Any],
-                  request_id: str) -> Envelope[CVSession]:
+    def create_cv(self, pack: Files, job: Files, settings: Mapping[str, Any], request_id: str) -> Envelope[CVSession]:
         """Start a CV job as session ``request_id``, or find the one it already is."""
         self._ensure_healthy()
-        return self._send("POST", "/v1/cv", CVSession, **_parts(pack, job, settings),
-                          headers={"X-Request-Id": request_id}, request_id=request_id)
+        return self._send(
+            "POST",
+            f"/{self.pipeline}/cv",
+            CVSession,
+            **_parts(pack, job, settings),
+            headers={"X-Request-Id": request_id},
+            request_id=request_id,
+        )
 
     def events(self, request_id: str, after: int = 0) -> Iterator[Event]:
         """The session's events after number ``after``, as they come, until
@@ -159,11 +164,11 @@ class HttpApi:
         ``status`` 0; one the server refuses, with its status."""
         headers = {"Last-Event-ID": str(after)} if after else {}
         try:
-            with self._client.stream("GET", f"/v1/cv/{request_id}/events",
-                                     headers=headers) as response:
+            path = f"/{self.pipeline}/cv/{request_id}/events"
+            with self._client.stream("GET", path, headers=headers) as response:
                 if not response.is_success:
                     response.read()
-                    self._envelope(response, f"/v1/cv/{request_id}/events", type(None))
+                    self._envelope(response, path, type(None))
                 yield from _parse_events(response.iter_lines())
         except httpx.HTTPError as exc:
             raise CVError(
@@ -173,20 +178,20 @@ class HttpApi:
 
     def acknowledge(self, request_id: str) -> Envelope[None]:
         """Everything is in: the server may delete the session."""
-        return self._send("DELETE", f"/v1/cv/{request_id}", type(None), request_id=request_id)
+        return self._send("DELETE", f"/{self.pipeline}/cv/{request_id}", type(None), request_id=request_id)
 
     def reset(self) -> Envelope[Cleanup]:
         """Delete every session on the server whose job is not running."""
         self._ensure_healthy()
-        return self._send("DELETE", "/v1/cv", Cleanup, params={"all": ""})
+        return self._send("DELETE", f"/{self.pipeline}/cv", Cleanup, params={"all": ""})
 
     def render(self, pack: Files, job: Files, settings: Mapping[str, Any]) -> Envelope[Rendered]:
         self._ensure_healthy()
-        return self._send("POST", "/v1/cv/render", Rendered, **_parts(pack, job, settings))
+        return self._send("POST", f"/{self.pipeline}/cv/render", Rendered, **_parts(pack, job, settings))
 
     def letter(self, pack: Files, job: Files, settings: Mapping[str, Any]) -> Envelope[Letter]:
         self._ensure_healthy()
-        return self._send("POST", "/v1/letter", Letter, **_parts(pack, job, settings))
+        return self._send("POST", f"/{self.pipeline}/letter", Letter, **_parts(pack, job, settings))
 
     # --- plumbing -----------------------------------------------------------
     def _ensure_healthy(self) -> None:
@@ -204,8 +209,9 @@ class HttpApi:
         last_error: Optional[CVError] = None
         for attempt in range(1, HEALTH_ATTEMPTS + 1):
             if self.verbose:
-                print(f"spinning up the server at {self.base_url}, attempt "
-                      f"{attempt}/{HEALTH_ATTEMPTS}", file=sys.stderr)
+                print(
+                    f"spinning up the server at {self.base_url}, attempt {attempt}/{HEALTH_ATTEMPTS}", file=sys.stderr
+                )
             try:
                 envelope = self.status()
             except CVError as exc:
@@ -222,14 +228,18 @@ class HttpApi:
             self._health_checked = True
             return
         raise CVError(
-            f"the ats-strike server at {self.base_url} did not come up after "
-            f"{HEALTH_ATTEMPTS} attempts: {last_error}",
+            f"the ats-strike server at {self.base_url} did not come up after {HEALTH_ATTEMPTS} attempts: {last_error}",
             status=last_error.status if last_error else 0,
         )
 
     def _send(
-        self, method: str, path: str, payload: type,
-        *, request_id: Optional[str] = None, **kwargs,
+        self,
+        method: str,
+        path: str,
+        payload: type,
+        *,
+        request_id: Optional[str] = None,
+        **kwargs,
     ) -> Envelope:
         try:
             response = self._client.request(method, path, **kwargs)
@@ -249,8 +259,7 @@ class HttpApi:
             body = response.json()
         except ValueError as exc:
             raise CVError(
-                f"{path} returned {response.status_code} and not JSON "
-                f"({response.text[:200]!r})",
+                f"{path} returned {response.status_code} and not JSON ({response.text[:200]!r})",
                 status=response.status_code,
                 request_id=response.headers.get("x-request-id"),
             ) from exc

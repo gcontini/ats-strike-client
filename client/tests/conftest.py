@@ -44,8 +44,12 @@ from cv_client.workspace import Workspace
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXAMPLE_CANDIDATE = REPO_ROOT / "examples" / "candidate"
 #: What a server folder holds in these tests: the example candidate's files.
-CANDIDATE_FILES = ("candidate_profile.json", "candidate_data.json",
-                   "candidate_preferences.md", "candidate_signature.png")
+CANDIDATE_FILES = (
+    "candidate_profile.json",
+    "candidate_data.json",
+    "candidate_preferences.md",
+    "candidate_signature.png",
+)
 #: The example candidate's name, which every PDF is named after.
 NAME = json.loads((EXAMPLE_CANDIDATE / "candidate_data.json").read_text())["name"]
 
@@ -57,20 +61,27 @@ TEX = r"\documentclass{article}"
 #: The intermediate result the fake session hands over.
 KEY_POINTS = [{"id": 1, "requirement": "IT management", "keywords": ["IT"], "importance": 90}]
 #: A line the server logged, and the line adding up its model calls.
-LOG_LINE = ("2026-01-15T09:00:00 INFO    [cv.jd_evaluation] ⏱ [cv] gpt-fake 1.2s | "
-            "input=10, thinking=0, output=20")
-TOTAL_LINE = ("2026-01-15T09:00:05 INFO    [run] Σ 1 model call(s), 1.2s | "
-              "input=10, thinking=0, output=20")
+LOG_LINE = "2026-01-15T09:00:00 INFO    [cv.jd_evaluation] ⏱ [cv] gpt-fake 1.2s | input=10, thinking=0, output=20"
+TOTAL_LINE = "2026-01-15T09:00:05 INFO    [run] Σ 1 model call(s), 1.2s | input=10, thinking=0, output=20"
 
 
 def analysis(**overrides) -> JDAnalysis:
     data = dict(
-        match_percentage=82, match_rationale="Strong overlap.", job_title="Head of IT",
-        work_location="Milan, Italy", work_mode="hybrid", expected_salary=None,
-        max_salary=-1, hard_skills=["AWS"],
-        soft_skills=["Communication"], company_name="Acme Corp",
-        posting_url=None, gaps="No SAP.", pers_preferences="Hybrid is fine.",
-        pers_preference_score=1.5, should_apply="CHECK",
+        match_percentage=82,
+        match_rationale="Strong overlap.",
+        job_title="Head of IT",
+        work_location="Milan, Italy",
+        work_mode="hybrid",
+        expected_salary=None,
+        max_salary=-1,
+        hard_skills=["AWS"],
+        soft_skills=["Communication"],
+        company_name="Acme Corp",
+        posting_url=None,
+        gaps="No SAP.",
+        pers_preferences="Hybrid is fine.",
+        pers_preference_score=1.5,
+        should_apply="CHECK",
         should_apply_reason="Good match, salary not stated.",
     )
     data.update(overrides)
@@ -82,12 +93,19 @@ def document() -> dict:
     keeps without reading a field of it."""
     return {
         **json.loads((EXAMPLE_CANDIDATE / "candidate_data.json").read_text()),
-        "company_name": "Acme Corp", "job_title": "Head of IT", "summary": "A summary.",
+        "company_name": "Acme Corp",
+        "job_title": "Head of IT",
+        "summary": "A summary.",
         "skills": [f"skill {i}" for i in range(6)],
         "experiences": [
-            {"title": "Engineer", "company": "Initech", "location": "Rome, Italy",
-             "dates": "2020 -- 2024", "project_name": None,
-             "duties": ["Did a thing."]}
+            {
+                "title": "Engineer",
+                "company": "Initech",
+                "location": "Rome, Italy",
+                "dates": "2020 -- 2024",
+                "project_name": None,
+                "duties": ["Did a thing."],
+            }
             for _ in range(3)
         ],
     }
@@ -129,8 +147,10 @@ def render_session() -> list:
         ("status", Status(status="started")),
         ("store", step("cv.tex", TEX)),
         ("store", StoreItem.from_content("CV", "cv", "cv.pdf", PDF)),
-        ("store", log_item("2026-01-15T09:00:01 INFO    [run] Σ 0 model call(s), 0.0s | "
-                           "input=0, thinking=0, output=0")),
+        (
+            "store",
+            log_item("2026-01-15T09:00:01 INFO    [run] Σ 0 model call(s), 0.0s | input=0, thinking=0, output=0"),
+        ),
         ("done", Done(detail="rendered, 1 page(s)")),
     ]
 
@@ -169,18 +189,24 @@ class FakeApi:
     def _record(self, name, pack=None, job=None, settings=None):
         self.calls.append(name)
         if pack is not None:
-            self.seen_pack, self.seen_job, self.seen_settings = (
-                dict(pack), dict(job), dict(settings))
+            self.seen_pack, self.seen_job, self.seen_settings = (dict(pack), dict(job), dict(settings))
         if self.fail_on == name:
-            raise CVError(f"model_output [{name}]: {name} failed", status=502,
-                          request_id="failed-request")
+            raise CVError(f"model_output [{name}]: {name} failed", status=502, request_id="failed-request")
 
     def status(self):
         from cv_contracts import ServerStatus
 
         self._record("status")
-        return envelope(ServerStatus(status="ok", version=self.server_version, protocol=self.protocol,
-                                     pdflatex=True, models={}, auth_required=False))
+        return envelope(
+            ServerStatus(
+                status="ok",
+                version=self.server_version,
+                protocol=self.protocol,
+                pdflatex=True,
+                models={},
+                auth_required=False,
+            )
+        )
 
     def detect(self, job):
         self._record("detect")
@@ -189,8 +215,7 @@ class FakeApi:
 
     def analyze(self, pack, job, settings):
         self._record("analyze", pack, job, settings)
-        return envelope(Analysed(analysis=self.analysis.model_dump(exclude_unset=True),
-                                 items=[log_item(LOG_LINE)]))
+        return envelope(Analysed(analysis=self.analysis.model_dump(exclude_unset=True), items=[log_item(LOG_LINE)]))
 
     def create_cv(self, pack, job, settings, request_id):
         self._record("create_cv", pack, job, settings)
@@ -214,8 +239,7 @@ class FakeApi:
         self._record("acknowledge")
         status = self.acknowledge_errors.pop(0) if self.acknowledge_errors else None
         if status is not None:
-            raise CVError(f"acknowledge failed with {status}", status=status,
-                          request_id=request_id)
+            raise CVError(f"acknowledge failed with {status}", status=status, request_id=request_id)
         return Envelope(request_id=request_id, ok=True)
 
     def reset(self):
@@ -224,8 +248,7 @@ class FakeApi:
 
     def render(self, pack, job, settings):
         self._record("render", pack, job, settings)
-        return envelope(Rendered(items=[step("cv.tex", TEX),
-                                        StoreItem.from_content("CV", "cv", "cv.pdf", PDF)]))
+        return envelope(Rendered(items=[step("cv.tex", TEX), StoreItem.from_content("CV", "cv", "cv.pdf", PDF)]))
 
     def letter(self, pack, job, settings):
         self._record("letter", pack, job, settings)
@@ -261,16 +284,14 @@ class Typist:
 
 
 # --- servers --------------------------------------------------------------------
-def make_server(parent: Path, name: str, *, default: bool = False, settings=None,
-                files=CANDIDATE_FILES) -> Server:
+def make_server(parent: Path, name: str, *, default: bool = False, settings=None, files=CANDIDATE_FILES) -> Server:
     """A server folder holding the example candidate's files."""
     folder = parent / name
     folder.mkdir(parents=True)
     for filename in files:
         shutil.copy(EXAMPLE_CANDIDATE / filename, folder / filename)
     url = f"http://{name}.invalid"
-    return Server(name=name, folder=folder, url=url, default=default,
-                  settings=settings or {})
+    return Server(name=name, folder=folder, url=url, default=default, settings=settings or {})
 
 
 def write_cv_toml(parent: Path, names, *, default=None, extra: str = "") -> Path:
@@ -351,8 +372,15 @@ def answering(*lines: str):
 
 
 # --- the stages ---------------------------------------------------------------
-def make_job(parent: Path, name: str = "Acme_Corp_Head_of_IT", *, should_apply="CHECK",
-             approval=None, with_analysis=True, **files) -> Path:
+def make_job(
+    parent: Path,
+    name: str = "Acme_Corp_Head_of_IT",
+    *,
+    should_apply="CHECK",
+    approval=None,
+    with_analysis=True,
+    **files,
+) -> Path:
     """A job folder as the watcher, an earlier run or you might leave it.
 
     ``files`` are extra files by path, ``/`` allowed, e.g. ``**{"v11/cv.json": ...}``.
@@ -361,8 +389,7 @@ def make_job(parent: Path, name: str = "Acme_Corp_Head_of_IT", *, should_apply="
     folder.mkdir(parents=True)
     (folder / "job_description.txt").write_text(JD_TEXT, encoding="utf-8")
     if with_analysis:
-        (folder / "analysis.json").write_text(
-            analysis(should_apply=should_apply).model_dump_json(), encoding="utf-8")
+        (folder / "analysis.json").write_text(analysis(should_apply=should_apply).model_dump_json(), encoding="utf-8")
     if approval is not None:
         (folder / "approval_status.txt").write_text(approval, encoding="utf-8")
     for filename, content in files.items():

@@ -64,7 +64,10 @@ class Tracker(Protocol):
     """Records a delivered job somewhere. Or not."""
 
     def record(
-        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None,
+        self,
+        job_dir: Path,
+        analysis: JDAnalysis,
+        cv: Optional[Path] = None,
         generator: str = "",
     ) -> None: ...
 
@@ -73,7 +76,10 @@ class NullTracker:
     """Tracking off — ``--no-xlsx``."""
 
     def record(
-        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None,
+        self,
+        job_dir: Path,
+        analysis: JDAnalysis,
+        cv: Optional[Path] = None,
         generator: str = "",
     ) -> None:
         return None
@@ -86,7 +92,10 @@ class XlsxTracker:
         self.xlsx_path = Path(xlsx_path)
 
     def record(
-        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None,
+        self,
+        job_dir: Path,
+        analysis: JDAnalysis,
+        cv: Optional[Path] = None,
         generator: str = "",
     ) -> None:
         """``cv`` is the delivered PDF, or ``None`` when only a letter was written;
@@ -121,10 +130,7 @@ class XlsxTracker:
         headers = [str(c.value).strip() for c in ws[1]]
         norm_headers = [h.lower() for h in headers]
         if DATE_COLUMN not in norm_headers:
-            raise RuntimeError(
-                f"{self.xlsx_path} has no '{DATE_COLUMN}' column "
-                f"(headers: {headers})"
-            )
+            raise RuntimeError(f"{self.xlsx_path} has no '{DATE_COLUMN}' column (headers: {headers})")
 
         row = [values.get(name, "") for name in norm_headers]
 
@@ -162,11 +168,8 @@ class XlsxTracker:
         check = openpyxl.load_workbook(self.xlsx_path)
         written = check.active.cell(row=target_row, column=date_col).value
         if written != values[DATE_COLUMN]:
-            raise RuntimeError(
-                f"verification failed: row {target_row} not found in {self.xlsx_path}"
-            )
+            raise RuntimeError(f"verification failed: row {target_row} not found in {self.xlsx_path}")
         print(f"  📊 xlsx row {target_row} written for {job_name}", flush=True)
-
 
 
 def build_tracker(root: Path, enabled: bool = True) -> Tracker:

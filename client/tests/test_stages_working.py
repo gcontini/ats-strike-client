@@ -16,7 +16,15 @@ from cv_client.tracking import build_tracker
 from cv_client.workspace import Artifacts, day
 
 from conftest import (
-    JD_TEXT, NAME, PDF, FakeApi, analysis, calls_for, document, make_job, make_server,
+    JD_TEXT,
+    NAME,
+    PDF,
+    FakeApi,
+    analysis,
+    calls_for,
+    document,
+    make_job,
+    make_server,
 )
 
 #: What the example candidate's CV for the Head of IT posting is called.
@@ -72,8 +80,7 @@ def test_check_waits_for_you(processor):
 
 
 def test_with_yes_check_waits_in_working_and_is_not_queued(workspace, writer, console):
-    processor = WorkingProcessor(workspace, writer, build_tracker(workspace.root, False),
-                                 console, ask=False)
+    processor = WorkingProcessor(workspace, writer, build_tracker(workspace.root, False), console, ask=False)
     folder = submit(processor, should_apply="CHECK")
 
     assert folder.is_dir()
@@ -100,8 +107,7 @@ def previous(parent, **fields):
     return folder
 
 
-@pytest.mark.parametrize("where, label", [("cv", "already applied"),
-                                          ("discarded", "already discarded")])
+@pytest.mark.parametrize("where, label", [("cv", "already applied"), ("discarded", "already discarded")])
 def test_a_posting_seen_before_writes_nothing(processor, workspace, capsys, where, label):
     earlier = previous(getattr(workspace, where))
 
@@ -120,8 +126,7 @@ def test_a_posting_still_in_flight_is_not_filed_twice(processor, workspace, caps
 
 
 def test_the_same_url_is_the_same_posting(processor, workspace):
-    previous(workspace.cv, company_name="Other", job_title="Else",
-             posting_url="https://jobs.example/42")
+    previous(workspace.cv, company_name="Other", job_title="Else", posting_url="https://jobs.example/42")
     assert submit(processor, should_apply="YES", posting_url="https://JOBS.example/42") is None
 
 
@@ -184,16 +189,16 @@ def hold(processor, **fields):
 
 
 @pytest.mark.parametrize("should_apply", ["YES", "CHECK", "NO"])
-def test_a_held_posting_waits_for_you_whatever_its_analysis_says(processor, workspace,
-                                                                 should_apply):
+def test_a_held_posting_waits_for_you_whatever_its_analysis_says(processor, workspace, should_apply):
     folder = hold(processor, should_apply=should_apply)
 
     assert folder.parent == workspace.working
     assert names(folder) == ["analysis.json", "approval_status.txt", "job_description.txt", "log.log"]
     assert (folder / "approval_status.txt").read_text().strip() == "PENDING"
     assert "waiting for your answer" in (folder / "log.log").read_text()
-    assert processor.generations["v11"].empty() and processor.approvals.empty(), \
+    assert processor.generations["v11"].empty() and processor.approvals.empty(), (
         "the caller asks at once; nothing is queued"
+    )
 
 
 def test_a_held_posting_seen_before_writes_nothing(processor, workspace):
@@ -206,8 +211,7 @@ def test_a_posting_left_unanswered_is_asked_about_again(processor, workspace):
     """Quit at the question, or stopped mid-question: never decided for you."""
     left = hold(processor, should_apply="YES")
 
-    next_run = WorkingProcessor(workspace, processor.writer, processor.tracker,
-                                processor.console)
+    next_run = WorkingProcessor(workspace, processor.writer, processor.tracker, processor.console)
     next_run.recover()
 
     assert queued(next_run.approvals) == [left]
@@ -239,9 +243,9 @@ def test_recovery_follows_the_table(processor, workspace, api):
     assert queued(processor.approvals) == [check]
     assert sorted(p.name for p in workspace.discarded.glob("*/*")) == ["D_no", "F_discarded"]
     errors = [p.name for p in workspace.error.glob("*/*")]
-    assert sorted(errors) == [
-        "26-09-28-16-13-16_jd.txt", "26-09-28-16-13-16_jd.txt.log",
-        "A_no_analysis", "G_odd"], errors
+    assert sorted(errors) == ["26-09-28-16-13-16_jd.txt", "26-09-28-16-13-16_jd.txt.log", "A_no_analysis", "G_odd"], (
+        errors
+    )
     assert "a loose file" in (workspace.error / day() / "26-09-28-16-13-16_jd.txt.log").read_text()
     assert api.calls == [], "nothing costs a call at startup"
     assert processor.failures == 0, "rejections are not failures"
@@ -249,8 +253,9 @@ def test_recovery_follows_the_table(processor, workspace, api):
 
 def test_a_leftover_holding_its_cv_sends_it_and_gets_no_row(processor, workspace, api):
     """The server renders what it stored; a PDF already there means a re-run."""
-    make_job(workspace.working, approval="APPROVED",
-             **{"v11/cv.json": json.dumps(document()), f"{STEM}.pdf": "an old PDF"})
+    make_job(
+        workspace.working, approval="APPROVED", **{"v11/cv.json": json.dumps(document()), f"{STEM}.pdf": "an old PDF"}
+    )
 
     processor.recover()
     drain(processor)
@@ -273,7 +278,9 @@ def test_a_file_failing_again_replaces_itself_and_its_log(processor, workspace):
         processor.reject(entry, log, failed=True)
 
     assert sorted(p.name for p in workspace.error.glob("*/*")) == [
-        "26-09-28-16-13-16_jd.txt", "26-09-28-16-13-16_jd.txt.log"]
+        "26-09-28-16-13-16_jd.txt",
+        "26-09-28-16-13-16_jd.txt.log",
+    ]
     text = (workspace.error / day() / "26-09-28-16-13-16_jd.txt.log").read_text()
     assert "second attempt" in text and "first attempt" not in text
 
@@ -304,11 +311,9 @@ def test_a_folder_goes_on_every_lane_and_is_delivered_once_all_have_written(lane
     folder = submit(processor, should_apply="YES")
     assert [queued(q) for q in processor.generations.values()] == [[folder], [folder]]
 
-    GenerationWorker(processor, processor.writer, processor.console,
-                     processor.writer.config.targets[0]).process(folder)
+    GenerationWorker(processor, processor.writer, processor.console, processor.writer.config.targets[0]).process(folder)
     assert folder.is_dir(), "v05 is still at it"
-    GenerationWorker(processor, processor.writer, processor.console,
-                     processor.writer.config.targets[1]).process(folder)
+    GenerationWorker(processor, processor.writer, processor.console, processor.writer.config.targets[1]).process(folder)
 
     delivered = workspace.cv / day() / "Acme_Corp_Head_of_IT"
     assert sorted(p.name for p in delivered.glob("*.pdf")) == [f"{STEM}.pdf", f"{STEM}_v05.pdf"]
@@ -360,8 +365,7 @@ def test_a_re_run_on_two_lanes_gets_no_row(lanes, workspace):
 
 # --- a folder dropped into the inbox --------------------------------------------
 def test_a_dropped_folder_is_copied_whole_and_routed(processor, workspace, tmp_path):
-    source = make_job(tmp_path / "in", "26-09-28-21-35-05_Acme", approval="APPROVED",
-                      **{"log.log": "an earlier run\n"})
+    source = make_job(tmp_path / "in", "26-09-28-21-35-05_Acme", approval="APPROVED", **{"log.log": "an earlier run\n"})
 
     folder = processor.submit_folder(source, TaggedLog(processor.console, source.name))
 
@@ -373,8 +377,7 @@ def test_a_dropped_folder_is_copied_whole_and_routed(processor, workspace, tmp_p
 
 
 def test_a_dropped_folder_holding_its_cv_sends_it(processor, workspace, api, tmp_path):
-    source = make_job(tmp_path / "in", should_apply="YES",
-                      **{"v11/cv.json": json.dumps(document())})
+    source = make_job(tmp_path / "in", should_apply="YES", **{"v11/cv.json": json.dumps(document())})
     processor.submit_folder(source, TaggedLog(processor.console, source.name))
     drain(processor)
     assert "cv.json" in api.seen_job

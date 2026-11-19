@@ -26,8 +26,7 @@ def tracker(tmp_path) -> XlsxTracker:
 def read_row(xlsx_path, row=2):
     sheet = openpyxl.load_workbook(xlsx_path).active
     headers = [str(c.value).strip().lower() for c in sheet[1]]
-    return dict(zip(headers, (sheet.cell(row=row, column=c + 1).value
-                              for c in range(len(headers)))))
+    return dict(zip(headers, (sheet.cell(row=row, column=c + 1).value for c in range(len(headers)))))
 
 
 def test_seeds_the_spreadsheet_and_fills_a_row(tracker, tmp_path):
@@ -55,7 +54,7 @@ def test_the_cv_path_is_recorded(tracker, tmp_path):
 def test_the_generator_is_recorded_between_notes_and_weblink(tracker, tmp_path):
     tracker.record(tmp_path / "job", analysis(), generator="v11|1.2.1")
     assert read_row(tracker.xlsx_path)["generator"] == "v11|1.2.1"
-    assert HEADERS[HEADERS.index("notes") + 1:HEADERS.index("webLink")] == ("generator",)
+    assert HEADERS[HEADERS.index("notes") + 1 : HEADERS.index("webLink")] == ("generator",)
 
 
 def test_skip_application_is_in_the_status_dropdown(tracker, tmp_path):

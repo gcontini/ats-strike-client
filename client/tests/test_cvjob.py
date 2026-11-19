@@ -39,12 +39,16 @@ def test_the_pack_the_job_and_the_settings_are_sent_under_the_session_id(api, se
     assert "candidate_profile.json" in api.seen_pack
 
 
-def test_every_thing_to_store_is_handed_over_in_order_then_the_session_acknowledged(
-        api, server):
+def test_every_thing_to_store_is_handed_over_in_order_then_the_session_acknowledged(api, server):
     _, stored = follow(api, server)
     assert [(i.type, i.name) for i in stored] == [
-        ("log", ""), ("step", "steps/key_points.json"), ("step", "cv.json"),
-        ("step", "cv.tex"), ("cv", "cv.pdf"), ("log", "")]
+        ("log", ""),
+        ("step", "steps/key_points.json"),
+        ("step", "cv.json"),
+        ("step", "cv.tex"),
+        ("cv", "cv.pdf"),
+        ("log", ""),
+    ]
     assert stored[-2].content() == PDF
     assert (stored[0].text, stored[-1].text) == (LOG_LINE, TOTAL_LINE)
     assert api.calls == ["create_cv", "events", "acknowledge"]
@@ -52,6 +56,7 @@ def test_every_thing_to_store_is_handed_over_in_order_then_the_session_acknowled
 
 def test_a_cv_that_could_not_be_stored_is_not_acknowledged(api, server):
     """The server keeps it, so running the posting again gets it back for free."""
+
     def full_disk(item):
         raise OSError("No space left on device")
 
@@ -61,8 +66,7 @@ def test_a_cv_that_could_not_be_stored_is_not_acknowledged(api, server):
 
 
 def test_a_failed_job_is_acknowledged_then_raised_with_its_cause(api, server):
-    api.session = api.session[:3] + [("error", Failure(
-        http_status=504, error="budget_exceeded [cv.cv]: out of time"))]
+    api.session = api.session[:3] + [("error", Failure(http_status=504, error="budget_exceeded [cv.cv]: out of time"))]
     with pytest.raises(CVError) as failure:
         follow(api, server)
     assert failure.value.status == 504
@@ -94,7 +98,7 @@ def test_a_dropped_stream_is_reopened_after_the_last_event_it_delivered(api, ser
 def test_a_stream_that_never_reaches_the_end_gives_up_at_the_timeout(api, server):
     """Without acknowledging: the job may still finish, and the next run of
     the same posting will find it."""
-    api.session = api.session[:2]                     # never ends
+    api.session = api.session[:2]  # never ends
     with pytest.raises(CVError) as failure:
         follow(api, replace(server, timeout=0))
     assert "run the same posting again" in str(failure.value)

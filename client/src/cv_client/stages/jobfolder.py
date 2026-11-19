@@ -38,9 +38,7 @@ Route = Literal["error", "generate", "approve", "discard"]
 _BY_SHOULD_APPLY: dict[str, Route] = {"YES": "generate", "CHECK": "approve", "NO": "discard"}
 
 
-def route(
-    names: Collection[str], analysis: Optional[JDAnalysis], approval: Optional[str]
-) -> Tuple[Route, str]:
+def route(names: Collection[str], analysis: Optional[JDAnalysis], approval: Optional[str]) -> Tuple[Route, str]:
     """Where a job folder goes next, and why.
 
     ``names`` are the files it holds, ``analysis`` its validated
@@ -89,8 +87,7 @@ def read_analysis(folder: Path) -> JDAnalysis:
 def write_analysis(folder: Path, analysis: JDAnalysis) -> None:
     """What the server wrote, and what you changed since: no default the
     client filled in is added."""
-    (folder / ANALYSIS_FILENAME).write_text(
-        analysis.model_dump_json(indent=2, exclude_unset=True), encoding="utf-8")
+    (folder / ANALYSIS_FILENAME).write_text(analysis.model_dump_json(indent=2, exclude_unset=True), encoding="utf-8")
 
 
 def read_approval(folder: Path) -> Optional[str]:
@@ -103,7 +100,16 @@ def write_approval(folder: Path, decision: str) -> None:
 
 
 __all__ = [
-    "APPROVAL_FILENAME", "APPROVED", "DISCARDED", "PENDING", "Route",
-    "route", "classify",
-    "read_jd", "read_analysis", "write_analysis", "read_approval", "write_approval",
+    "APPROVAL_FILENAME",
+    "APPROVED",
+    "DISCARDED",
+    "PENDING",
+    "Route",
+    "route",
+    "classify",
+    "read_jd",
+    "read_analysis",
+    "write_analysis",
+    "read_approval",
+    "write_approval",
 ]

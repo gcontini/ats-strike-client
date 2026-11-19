@@ -87,11 +87,13 @@ def test_two_servers_may_share_a_folder_and_are_named_after_their_section(home):
     (home / "cv.toml").write_text(
         'default_server = "new"\n'
         '[servers.new]\nfolder = "v11"\nurl = "http://new.invalid"\n'
-        '[servers.v05]\nfolder = "v11"\nurl = "http://old.invalid"\n')
+        '[servers.v05]\nfolder = "v11"\nurl = "http://old.invalid"\n'
+    )
     config = load_config(selected=["v05"], default_needed=True)
     assert [(s.name, s.url, s.folder) for s in config.servers()] == [
         ("v05", "http://old.invalid", home / "v11"),
-        ("new", "http://new.invalid", home / "v11")]
+        ("new", "http://new.invalid", home / "v11"),
+    ]
 
 
 def test_a_mode_that_needs_the_default_stops_without_one(home):
@@ -137,13 +139,13 @@ def test_a_server_section_is_read_whole(home):
     (home / "cv.toml").write_text(
         '[servers.v11]\nfolder = "v11"\n'
         'url = "https://cv.example"\ntoken = "abc"\ntimeout = 60\n'
-        '[servers.v11.settings]\npages = 2\n'
-        '[servers.v11.settings.extra_body.cv]\ntemperature = 0.4\n')
+        "[servers.v11.settings]\npages = 2\n"
+        "[servers.v11.settings.extra_body.cv]\ntemperature = 0.4\n"
+    )
 
     server = load_config().default
 
-    assert (server.name, server.url, server.token, server.timeout) == (
-        "v11", "https://cv.example", "abc", 60.0)
+    assert (server.name, server.url, server.token, server.timeout) == ("v11", "https://cv.example", "abc", 60.0)
     assert server.settings == {"pages": 2, "extra_body": {"cv": {"temperature": 0.4}}}
 
 
@@ -159,23 +161,25 @@ def test_a_bad_cover_letter_mode_is_refused(home):
         load_config(overrides={"cover_letter": "maybe"})
 
 
-@pytest.mark.parametrize("letter, selected, lanes", [
-    ("no", [], ["v11"]),
-    ("no", ["v05"], ["v05"]),
-    ("yes", ["v05"], ["v05", "v11"]),
-    ("letter_only", ["v05"], ["v05", "v11"]),
-    ("yes", ["v11", "v05"], ["v11", "v05"]),
-])
-def test_lanes_are_the_targets_and_the_default_when_it_writes_the_letter(
-        home, letter, selected, lanes):
+@pytest.mark.parametrize(
+    "letter, selected, lanes",
+    [
+        ("no", [], ["v11"]),
+        ("no", ["v05"], ["v05"]),
+        ("yes", ["v05"], ["v05", "v11"]),
+        ("letter_only", ["v05"], ["v05", "v11"]),
+        ("yes", ["v11", "v05"], ["v11", "v05"]),
+    ],
+)
+def test_lanes_are_the_targets_and_the_default_when_it_writes_the_letter(home, letter, selected, lanes):
     two_servers(home)
-    config = load_config(selected=selected, default_needed=True,
-                         overrides={"cover_letter": letter})
+    config = load_config(selected=selected, default_needed=True, overrides={"cover_letter": letter})
     assert [s.name for s in config.lanes()] == lanes
 
 
 def test_server_ver_help_lists_the_configured_servers(home, capsys):
     from cv_client import cli
+
     two_servers(home)
     with pytest.raises(SystemExit):
         cli.main(["watch", "--help"])
@@ -184,6 +188,7 @@ def test_server_ver_help_lists_the_configured_servers(home, capsys):
 
 def test_server_ver_help_says_when_there_are_none(home, capsys):
     from cv_client import cli
+
     with pytest.raises(SystemExit):
         cli.main(["render", "--help"])
     assert "Available: none (no server in cv.toml)." in " ".join(capsys.readouterr().out.split())

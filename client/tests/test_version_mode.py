@@ -16,20 +16,31 @@ from conftest import make_server, write_cv_toml
 
 def _server(protocol: int) -> httpx.Client:
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={
-            "request_id": "r1", "ok": True,
-            "data": {"status": "ok", "version": "1.1.0", "protocol": protocol, "pdflatex": True,
-                     "models": {}, "auth_required": False},
-        })
+        return httpx.Response(
+            200,
+            json={
+                "request_id": "r1",
+                "ok": True,
+                "data": {
+                    "status": "ok",
+                    "version": "1.1.0",
+                    "protocol": protocol,
+                    "pdflatex": True,
+                    "models": {},
+                    "auth_required": False,
+                },
+            },
+        )
+
     return httpx.Client(transport=httpx.MockTransport(handler), base_url="http://server.invalid")
 
 
 def _serving(monkeypatch, protocols: dict) -> None:
     """Each server URL answers /healthz with its own protocol."""
     real = HttpApi
-    monkeypatch.setattr(version_mode, "HttpApi",
-                        lambda url, token=None: real(url, token=token,
-                                                     client=_server(protocols[url])))
+    monkeypatch.setattr(
+        version_mode, "HttpApi", lambda url, token=None: real(url, token=token, client=_server(protocols[url]))
+    )
 
 
 def test_a_server_on_this_protocol_is_reported_and_exits_zero(monkeypatch, capsys, config):
@@ -41,8 +52,7 @@ def test_a_server_on_this_protocol_is_reported_and_exits_zero(monkeypatch, capsy
     assert "speaks this client's protocol" in out[1]
 
 
-def test_each_selected_server_is_checked_and_another_protocol_exits_one(
-        monkeypatch, capsys, config, servers_dir):
+def test_each_selected_server_is_checked_and_another_protocol_exits_one(monkeypatch, capsys, config, servers_dir):
     v05 = make_server(servers_dir, "v05")
     _serving(monkeypatch, {"http://v11.invalid": 2, "http://v05.invalid": 1})
 
@@ -59,8 +69,7 @@ def test_cv_version_checks_every_server_cv_toml_lists(tmp_path, monkeypatch, cap
         make_server(tmp_path, name)
     write_cv_toml(tmp_path, ["v11", "v05", "v20"], default="v11")
     monkeypatch.delenv("ATS_CONFIG", raising=False)
-    _serving(monkeypatch, {"http://v11.invalid": 2, "http://v05.invalid": 1,
-                           "http://v20.invalid": 2})
+    _serving(monkeypatch, {"http://v11.invalid": 2, "http://v05.invalid": 1, "http://v20.invalid": 2})
 
     assert cli.main(["version", "--data-dir", str(tmp_path)]) == 1
 
@@ -72,9 +81,9 @@ def test_cv_version_checks_every_server_cv_toml_lists(tmp_path, monkeypatch, cap
 def test_an_unreachable_server_is_not_a_failure(monkeypatch, capsys, config):
     def refuse(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("refused")
+
     down = httpx.Client(transport=httpx.MockTransport(refuse), base_url="http://server.invalid")
-    monkeypatch.setattr(version_mode, "HttpApi",
-                        lambda url, token=None: HttpApi(url, token=token, client=down))
+    monkeypatch.setattr(version_mode, "HttpApi", lambda url, token=None: HttpApi(url, token=token, client=down))
 
     assert version_mode.run(config) == 0
 

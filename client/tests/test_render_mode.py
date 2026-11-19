@@ -16,8 +16,7 @@ def served(api, monkeypatch):
 
 
 @pytest.mark.parametrize("source, sent", [("cv.json", "cv.json"), ("edited.tex", "cv.tex")])
-def test_the_file_is_sent_by_its_suffix_and_only_the_pdf_is_kept(config, api, tmp_path,
-                                                                  source, sent):
+def test_the_file_is_sent_by_its_suffix_and_only_the_pdf_is_kept(config, api, tmp_path, source, sent):
     path = tmp_path / source
     path.write_text("{}")
 
@@ -26,8 +25,7 @@ def test_the_file_is_sent_by_its_suffix_and_only_the_pdf_is_kept(config, api, tm
     assert api.seen_job == {sent: b"{}"}
     assert "candidate_data.json" in api.seen_pack
     assert path.with_suffix(".pdf").read_bytes() == PDF
-    assert {p.name for p in tmp_path.iterdir() if p.is_file()} == {
-        path.with_suffix(".pdf").name, source}
+    assert {p.name for p in tmp_path.iterdir() if p.is_file()} == {path.with_suffix(".pdf").name, source}
 
 
 def test_output_names_the_pdf(config, tmp_path):

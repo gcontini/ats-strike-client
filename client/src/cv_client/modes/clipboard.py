@@ -26,8 +26,7 @@ from ..workspace import Workspace
 from . import connect
 
 
-def run(config: Config, out: Path, *, assume_yes: bool = False, track: bool = True,
-        new: bool = False) -> int:
+def run(config: Config, out: Path, *, assume_yes: bool = False, track: bool = True, new: bool = False) -> int:
     problem = clipboard_error()
     if problem:
         fail(f"{problem}\n{NO_CLIPBOARD_HINT}")
@@ -52,18 +51,16 @@ def run(config: Config, out: Path, *, assume_yes: bool = False, track: bool = Tr
     working = WorkingProcessor(workspace, writer, build_tracker(workspace.root, track), console)
     confirmer: Confirmer = AutoConfirmer() if assume_yes else PromptConfirmer(keyboard)
     intake = Intake(calls[config.default.name], working, confirmer, console)
-    listener = Listener(ClipboardSource(), intake, working, keyboard, console,
-                        assume_yes=assume_yes)
-    background = {f"cv-{server.name}": GenerationWorker(working, writer, console, server)
-                  for server in config.lanes()}
+    listener = Listener(ClipboardSource(), intake, working, keyboard, console, assume_yes=assume_yes)
+    background = {f"cv-{server.name}": GenerationWorker(working, writer, console, server) for server in config.lanes()}
     watcher = Watcher(working, listener.run, background, keyboard, console)
 
     print(f"📋 watching the clipboard. Output: {workspace.root}", flush=True)
-    print("   Copy a job posting to start. q = let the CV being written finish, then quit. "
-          "Ctrl-C = stop now.", flush=True)
+    print(
+        "   Copy a job posting to start. q = let the CV being written finish, then quit. Ctrl-C = stop now.", flush=True
+    )
     try:
         return watcher.run()
     except KeyboardInterrupt:
-        print("\n⏹ stopped now. Anything in working/ is offered again at the next start.",
-              flush=True)
+        print("\n⏹ stopped now. Anything in working/ is offered again at the next start.", flush=True)
         return 0

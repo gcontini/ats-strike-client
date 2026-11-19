@@ -16,7 +16,16 @@ from cv_client.tracking import build_tracker
 from cv_client.workspace import Artifacts, day
 
 from conftest import (
-    JD_TEXT, KEY_POINTS, LOG_LINE, NAME, PDF, TEX, FakeApi, analysis, calls_for, document,
+    JD_TEXT,
+    KEY_POINTS,
+    LOG_LINE,
+    NAME,
+    PDF,
+    TEX,
+    FakeApi,
+    analysis,
+    calls_for,
+    document,
     make_server,
 )
 
@@ -25,8 +34,7 @@ STEM = Artifacts(NAME, "Head of IT").stem
 
 
 def yes_posting(processor):
-    folder = processor.submit(JD_TEXT, analysis(should_apply="YES"),
-                              TaggedLog(processor.console, "posting.txt"))
+    folder = processor.submit(JD_TEXT, analysis(should_apply="YES"), TaggedLog(processor.console, "posting.txt"))
     assert processor.generations["v11"].get_nowait() == folder
     return folder
 
@@ -51,17 +59,24 @@ def row(workspace):
     return dict(zip(headers, [c.value for c in sheet[2]]))
 
 
-def test_a_cv_is_delivered_with_everything_needed_to_render_it_again(
-        processor, workspace, api):
+def test_a_cv_is_delivered_with_everything_needed_to_render_it_again(processor, workspace, api):
     folder = yes_posting(processor)
     run_one(processor, folder)
 
     done = delivered(workspace)
     assert sorted(p.name for p in done.iterdir()) == [
-        "analysis.json", f"{STEM}.pdf", "job_description.txt", "log.log", "v11"]
-    assert sorted(p.relative_to(done / "v11").as_posix() for p in (done / "v11").rglob("*")
-                  if p.is_file()) == [
-        "candidate_signature.png", "cv.json", "cv.tex", "steps/key_points.json"]
+        "analysis.json",
+        f"{STEM}.pdf",
+        "job_description.txt",
+        "log.log",
+        "v11",
+    ]
+    assert sorted(p.relative_to(done / "v11").as_posix() for p in (done / "v11").rglob("*") if p.is_file()) == [
+        "candidate_signature.png",
+        "cv.json",
+        "cv.tex",
+        "steps/key_points.json",
+    ]
     assert (done / f"{STEM}.pdf").read_bytes() == PDF
     assert (done / "v11" / "cv.tex").read_text() == TEX
     assert not folder.exists()
@@ -85,8 +100,7 @@ def test_a_generated_cv_gets_a_spreadsheet_row_pointing_at_its_pdf(processor, wo
         ("letter_only", ["letter"], True),
     ],
 )
-def test_cover_letter_modes_decide_what_runs(api, config, workspace, console, mode, expected,
-                                             letter):
+def test_cover_letter_modes_decide_what_runs(api, config, workspace, console, mode, expected, letter):
     processor = build(replace(config, cover_letter=mode), {"v11": api}, workspace, console)
     run_one(processor, yes_posting(processor))
 
@@ -101,16 +115,13 @@ def test_cover_letter_modes_decide_what_runs(api, config, workspace, console, mo
         assert cv_path.endswith(f"{STEM}.pdf")
 
 
-def test_the_letter_is_sent_the_job_with_its_analysis_and_its_log_kept(
-        api, config, workspace, console):
-    processor = build(replace(config, cover_letter="letter_only"), {"v11": api}, workspace,
-                      console)
+def test_the_letter_is_sent_the_job_with_its_analysis_and_its_log_kept(api, config, workspace, console):
+    processor = build(replace(config, cover_letter="letter_only"), {"v11": api}, workspace, console)
     run_one(processor, yes_posting(processor))
 
     assert sorted(api.seen_job) == ["analysis.json", "job_description.txt"]
     assert (delivered(workspace) / "cover_letter.txt").read_text() == "Dear hiring manager."
-    assert "  v11 2026-01-15T09:00:05 INFO    [run] Σ" in (
-        delivered(workspace) / "log.log").read_text()
+    assert "  v11 2026-01-15T09:00:05 INFO    [run] Σ" in (delivered(workspace) / "log.log").read_text()
 
 
 def test_only_the_default_writes_the_letter(config, servers_dir, workspace, console, server):
@@ -118,8 +129,7 @@ def test_only_the_default_writes_the_letter(config, servers_dir, workspace, cons
     apis = {"v11": FakeApi(), "v05": FakeApi()}
     config = replace(config, targets=(v05,), cover_letter="yes")
     processor = build(config, apis, workspace, console)
-    folder = processor.submit(JD_TEXT, analysis(should_apply="YES"),
-                              TaggedLog(console, "posting.txt"))
+    folder = processor.submit(JD_TEXT, analysis(should_apply="YES"), TaggedLog(console, "posting.txt"))
     for lane in ("v05", "v11"):
         processor.generations[lane].get_nowait()
         run_one(processor, folder, lane)
@@ -131,8 +141,7 @@ def test_only_the_default_writes_the_letter(config, servers_dir, workspace, cons
     assert (done / "cover_letter.txt").is_file()
 
 
-def test_the_server_s_settings_and_folder_are_what_is_sent(api, config, workspace, console,
-                                                           server):
+def test_the_server_s_settings_and_folder_are_what_is_sent(api, config, workspace, console, server):
     settings = {"pages": 1, "extra_body": {"cv": {"temperature": 0.7}}}
     (server.folder / "sys_prompt_cv_body.txt").write_text("MY PROMPT")
     config = replace(config, targets=(replace(server, settings=settings),))
@@ -164,11 +173,9 @@ def test_the_stored_document_is_kept_exactly_as_it_arrived(processor, workspace)
 def test_a_failed_job_is_kept_under_error_with_what_the_server_said(processor, workspace, api):
     api.session = api.session[:3] + [
         ("store", api.session[8][1]),
-        ("error", Failure(http_status=502,
-                          error="model_output [cv.cv]: cv: no usable reply in 3 attempts")),
+        ("error", Failure(http_status=502, error="model_output [cv.cv]: cv: no usable reply in 3 attempts")),
     ]
-    folder = processor.submit(JD_TEXT, analysis(should_apply="CHECK"),
-                              TaggedLog(processor.console, "posting.txt"))
+    folder = processor.submit(JD_TEXT, analysis(should_apply="CHECK"), TaggedLog(processor.console, "posting.txt"))
     processor.approvals.get_nowait()
     processor.approve(folder)
 
@@ -177,7 +184,11 @@ def test_a_failed_job_is_kept_under_error_with_what_the_server_said(processor, w
     [failed] = workspace.error.glob("*/Acme_Corp_Head_of_IT")
     assert failed.parent.name == day()
     assert sorted(p.name for p in failed.iterdir()) == [
-        "analysis.json", "approval_status.txt", "job_description.txt", "log.log"]
+        "analysis.json",
+        "approval_status.txt",
+        "job_description.txt",
+        "log.log",
+    ]
     log = (failed / "log.log").read_text()
     assert "model_output [cv.cv]: cv: no usable reply in 3 attempts" in log
     assert f"  v11 {LOG_LINE}" in log, "the server's own lines"
@@ -226,8 +237,7 @@ def test_a_folder_gone_from_the_queue_is_skipped(processor, api):
     assert api.calls == []
 
 
-def test_each_status_is_reported_and_log_lines_are_not_shown(processor, workspace, api,
-                                                              capsys):
+def test_each_status_is_reported_and_log_lines_are_not_shown(processor, workspace, api, capsys):
     """The wait is minutes long; a silent one is indistinguishable from a
     hung one. The log lines are one per model call: kept, not shown."""
     run_one(processor, yes_posting(processor))
@@ -243,8 +253,7 @@ def test_verbose_shows_the_details_and_the_server_s_lines(api, config, workspace
         ("status", Status(status="profile_scoring", detail="12 key points, tokens used=99")),
         *api.session[2:],
     ]
-    processor = build(replace(config, verbose=True), {"v11": api}, workspace,
-                      Console(verbose=True))
+    processor = build(replace(config, verbose=True), {"v11": api}, workspace, Console(verbose=True))
     run_one(processor, yes_posting(processor))
 
     out = capsys.readouterr().out
@@ -268,9 +277,8 @@ def test_a_run_the_server_already_has_is_replayed_and_filed(api, processor, work
     assert "replaying it (--new starts over)" in (delivered(workspace) / "log.log").read_text()
 
 
-def test_new_drops_the_run_the_server_has_and_writes_the_cv_again(
-        api, config, workspace, console):
-    api.acknowledge_errors = [404]                  # nothing there: fine
+def test_new_drops_the_run_the_server_has_and_writes_the_cv_again(api, config, workspace, console):
+    api.acknowledge_errors = [404]  # nothing there: fine
     processor = build(config, {"v11": api}, workspace, console, track=False, new=True)
     run_one(processor, yes_posting(processor))
 
@@ -280,15 +288,12 @@ def test_new_drops_the_run_the_server_has_and_writes_the_cv_again(
 
 def test_drain_writes_everything_queued_then_returns(processor, workspace):
     """submit's way: the CV on the calling thread, and back when it is filed."""
-    processor.submit(JD_TEXT, analysis(should_apply="YES", company_name="Alpha"),
-                     TaggedLog(processor.console, "a.txt"))
-    processor.submit(JD_TEXT, analysis(should_apply="YES", company_name="Beta"),
-                     TaggedLog(processor.console, "b.txt"))
+    processor.submit(JD_TEXT, analysis(should_apply="YES", company_name="Alpha"), TaggedLog(processor.console, "a.txt"))
+    processor.submit(JD_TEXT, analysis(should_apply="YES", company_name="Beta"), TaggedLog(processor.console, "b.txt"))
 
     [server] = processor.writer.config.lanes()
     GenerationWorker(processor, processor.writer, processor.console, server).drain()
 
-    assert sorted(p.name for p in workspace.cv.glob("*/*")) == [
-        "Alpha_Head_of_IT", "Beta_Head_of_IT"]
+    assert sorted(p.name for p in workspace.cv.glob("*/*")) == ["Alpha_Head_of_IT", "Beta_Head_of_IT"]
     assert processor.generations["v11"].empty()
     assert not any(workspace.working.iterdir())

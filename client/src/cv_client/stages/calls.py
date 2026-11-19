@@ -35,11 +35,9 @@ class Calls:
         to go yet: skipped, with a line saying so."""
         for item in items:
             if (item.location, item.type) == ("CV", "log"):
-                log.server_line(self.server.name,
-                                item.content().decode("utf-8", errors="replace"))
+                log.server_line(self.server.name, item.content().decode("utf-8", errors="replace"))
             else:
-                log.step(f"⚠ {self.server.name}: skipped a {item.location}/{item.type} item "
-                         f"named {item.name!r}")
+                log.step(f"⚠ {self.server.name}: skipped a {item.location}/{item.type} item named {item.name!r}")
 
     def failed(self, log: JobLog, exc: CVError) -> None:
         """A call failed: say so, and under which request."""

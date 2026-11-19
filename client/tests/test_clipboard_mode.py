@@ -22,7 +22,14 @@ from cv_client.ui import Decision
 from cv_contracts import Analysed
 
 from conftest import (
-    JD_TEXT, FakeApi, ScriptedConfirmer, analysis, calls_for, envelope, make_job, typed,
+    JD_TEXT,
+    FakeApi,
+    ScriptedConfirmer,
+    analysis,
+    calls_for,
+    envelope,
+    make_job,
+    typed,
 )
 
 DEADLINE = 10.0
@@ -51,8 +58,7 @@ class ByFirstLine(FakeApi):
     def analyze(self, pack, job, settings):
         self._record("analyze")
         company = job["job_description.txt"].decode().split("\n", 1)[0]
-        return envelope(Analysed(analysis=analysis(company_name=company,
-                                                   should_apply="YES").model_dump()))
+        return envelope(Analysed(analysis=analysis(company_name=company, should_apply="YES").model_dump()))
 
 
 class Slow(ByFirstLine):
@@ -78,12 +84,17 @@ def build(api, config, workspace, keyboard, confirmer, clipboard):
     calls = calls_for(config, {"v11": api})
     writer = CvWriter(calls, config)
     working = WorkingProcessor(workspace, writer, build_tracker(workspace.root, True), console)
-    listener = Listener(clipboard, Intake(calls["v11"], working, confirmer, console),
-                        working, keyboard, console, poll_seconds=0.01)
-    return Watcher(working, listener.run,
-                   {"cv": GenerationWorker(working, writer, console, config.default,
-                                           poll_seconds=0.01)},
-                   keyboard, console, join_seconds=0.01)
+    listener = Listener(
+        clipboard, Intake(calls["v11"], working, confirmer, console), working, keyboard, console, poll_seconds=0.01
+    )
+    return Watcher(
+        working,
+        listener.run,
+        {"cv": GenerationWorker(working, writer, console, config.default, poll_seconds=0.01)},
+        keyboard,
+        console,
+        join_seconds=0.01,
+    )
 
 
 def in_background(watcher):
@@ -118,8 +129,7 @@ def test_the_next_posting_is_asked_about_while_a_cv_is_written(config, workspace
     clipboard = Clipboard()
     confirmer = ScriptedConfirmer(Decision(submit=True))
     clipboard.copy(posting("Alpha"))
-    thread, result = in_background(build(api, config, workspace, Keyboard(typist), confirmer,
-                                         clipboard))
+    thread, result = in_background(build(api, config, workspace, Keyboard(typist), confirmer, clipboard))
     try:
         assert api.writing.wait(DEADLINE), "Alpha's CV is being written"
         clipboard.copy(posting("Beta"))
@@ -142,8 +152,9 @@ def test_q_lets_the_cv_in_hand_finish_and_the_queued_one_waits(config, workspace
     api = Slow()
     clipboard = Clipboard()
     clipboard.copy(posting("Alpha"))
-    thread, result = in_background(build(api, config, workspace, Keyboard(typist),
-                                         ScriptedConfirmer(Decision(submit=True)), clipboard))
+    thread, result = in_background(
+        build(api, config, workspace, Keyboard(typist), ScriptedConfirmer(Decision(submit=True)), clipboard)
+    )
     beta = workspace.working / "Beta_Head_of_IT"
     try:
         assert api.writing.wait(DEADLINE)
@@ -164,20 +175,22 @@ def test_q_lets_the_cv_in_hand_finish_and_the_queued_one_waits(config, workspace
 
 def test_leftovers_come_first_asked_about_or_written(config, workspace, typist):
     make_job(workspace.working, "Asked_Before", approval="PENDING")
-    make_job(workspace.working, "Approved_Before", approval="APPROVED",
-             **{"analysis.json": analysis(company_name="Approved Co").model_dump_json()})
+    make_job(
+        workspace.working,
+        "Approved_Before",
+        approval="APPROVED",
+        **{"analysis.json": analysis(company_name="Approved Co").model_dump_json()},
+    )
     clipboard = Clipboard()
     clipboard.copy(posting("Alpha"))
     confirmer = ScriptedConfirmer(Decision(submit=False), Decision(submit=True))
-    thread, result = in_background(build(ByFirstLine(), config, workspace, Keyboard(typist),
-                                         confirmer, clipboard))
+    thread, result = in_background(build(ByFirstLine(), config, workspace, Keyboard(typist), confirmer, clipboard))
     wait_until(lambda: len(entries(workspace.cv)) == 2)
     typist.type("q")
     thread.join(DEADLINE)
 
     assert result["code"] == 0
-    assert companies(confirmer) == ["Acme Corp", "Alpha"], \
-        "the unanswered leftover first, the approved one not again"
+    assert companies(confirmer) == ["Acme Corp", "Alpha"], "the unanswered leftover first, the approved one not again"
     assert entries(workspace.discarded) == ["Asked_Before"]
     assert entries(workspace.cv) == ["Alpha_Head_of_IT", "Approved_Before"]
 
@@ -185,9 +198,16 @@ def test_leftovers_come_first_asked_about_or_written(config, workspace, typist):
 def test_quitting_at_the_question_leaves_the_posting_pending(config, workspace, typist, capsys):
     clipboard = Clipboard()
     clipboard.copy(posting("Alpha"))
-    thread, result = in_background(build(ByFirstLine(), config, workspace, Keyboard(typist),
-                                         ScriptedConfirmer(Decision(submit=False, quit=True)),
-                                         clipboard))
+    thread, result = in_background(
+        build(
+            ByFirstLine(),
+            config,
+            workspace,
+            Keyboard(typist),
+            ScriptedConfirmer(Decision(submit=False, quit=True)),
+            clipboard,
+        )
+    )
     thread.join(DEADLINE)
 
     assert not thread.is_alive(), "q at the question stops it; no second q needed"
@@ -214,13 +234,11 @@ def listener(workspace, keyboard, server, *, assume_yes=False):
     console = Console()
     working = WorkingProcessor(workspace, None, build_tracker(workspace.root, False), console)
     intake = Intake(Calls(server, FakeApi()), working, ScriptedConfirmer(), console)
-    return Listener(Clipboard(), intake, working, keyboard, console, assume_yes=assume_yes,
-                    poll_seconds=0.01)
+    return Listener(Clipboard(), intake, working, keyboard, console, assume_yes=assume_yes, poll_seconds=0.01)
 
 
 def test_the_end_of_input_stops_it(workspace, server):
-    done = threading.Thread(target=listener(workspace, typed(), server).run,
-                            args=(threading.Event(),), daemon=True)
+    done = threading.Thread(target=listener(workspace, typed(), server).run, args=(threading.Event(),), daemon=True)
     done.start()
     done.join(DEADLINE)
     assert not done.is_alive(), "nobody is left to answer"
@@ -229,8 +247,9 @@ def test_the_end_of_input_stops_it(workspace, server):
 def test_with_yes_the_end_of_input_does_not(workspace, server):
     """An unattended run may have no keyboard at all."""
     stop = threading.Event()
-    running = threading.Thread(target=listener(workspace, typed(), server, assume_yes=True).run,
-                               args=(stop,), daemon=True)
+    running = threading.Thread(
+        target=listener(workspace, typed(), server, assume_yes=True).run, args=(stop,), daemon=True
+    )
     running.start()
     time.sleep(0.1)
     assert running.is_alive()

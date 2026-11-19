@@ -62,9 +62,15 @@ class CvWriter:
         try:
             if server in self.config.targets and mode != "letter_only":
                 log.step(f"✍ {server.name}: writing the CV (this takes minutes)...")
-                write_cv(calls.api, server, files.outgoing(), say=log.step,
-                         store=lambda item: files.store(item, log),
-                         new=self.new, verbose=self.config.verbose)
+                write_cv(
+                    calls.api,
+                    server,
+                    files.outgoing(),
+                    say=log.step,
+                    store=lambda item: files.store(item, log),
+                    new=self.new,
+                    verbose=self.config.verbose,
+                )
             if server.default and mode in ("yes", "letter_only"):
                 self._letter(folder, calls, files, log)
         except CVError as exc:
@@ -98,8 +104,7 @@ class CvWriter:
     def _letter(folder: Path, calls: Calls, files: JobFiles, log: JobLog) -> None:
         server = calls.server
         log.step(f"✉ {server.name}: writing the cover letter...")
-        letter = calls.make(lambda: calls.api.letter(server.pack(), files.outgoing(),
-                                                     server.settings))
+        letter = calls.make(lambda: calls.api.letter(server.pack(), files.outgoing(), server.settings))
         for item in letter.items:
             files.store(item, log)
         (folder / LETTER_FILENAME).write_text(letter.text, encoding="utf-8")
@@ -111,8 +116,13 @@ class GenerationWorker:
     or drained right here by ``submit``."""
 
     def __init__(
-        self, working: "WorkingProcessor", writer: CvWriter, console: Console, server: Server,
-        *, poll_seconds: float = 0.5,
+        self,
+        working: "WorkingProcessor",
+        writer: CvWriter,
+        console: Console,
+        server: Server,
+        *,
+        poll_seconds: float = 0.5,
     ) -> None:
         self.working = working
         self.writer = writer

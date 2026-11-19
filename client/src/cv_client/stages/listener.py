@@ -25,8 +25,7 @@ if TYPE_CHECKING:
 #: How often the clipboard is read. Typing q is answered at once regardless.
 POLL_SECONDS = 2.0
 
-IDLE_HINT = ("watching the clipboard. q = let the CV being written finish, then quit; "
-             "Ctrl-C = stop now")
+IDLE_HINT = "watching the clipboard. q = let the CV being written finish, then quit; Ctrl-C = stop now"
 
 
 class JDSource(Protocol):

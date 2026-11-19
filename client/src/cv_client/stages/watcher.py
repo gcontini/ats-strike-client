@@ -68,8 +68,7 @@ class Watcher:
         self._wait(threads)
         left = [p for p in self.working.workspace.working.iterdir() if not p.name.startswith(".")]
         if left:
-            self.console.say(f"⏹ stopped. {len(left)} posting(s) wait in working/ "
-                             "for the next start.")
+            self.console.say(f"⏹ stopped. {len(left)} posting(s) wait in working/ for the next start.")
         else:
             self.console.say("⏹ stopped.")
         return 1 if self.working.failures or self._crashed else 0
@@ -82,8 +81,7 @@ class Watcher:
                 stage.run(stop)
             except Exception:
                 self._crashed = True
-                self.console.say(f"✗ the {name} thread stopped:\n"
-                                 f"{traceback.format_exc().rstrip()}")
+                self.console.say(f"✗ the {name} thread stopped:\n{traceback.format_exc().rstrip()}")
                 stop.set()
 
         thread = threading.Thread(target=guarded, name=name, daemon=True)

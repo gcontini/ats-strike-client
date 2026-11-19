@@ -33,8 +33,7 @@ def test_junk_never_reaches_the_server(api, server, processor, workspace):
     assert not any(workspace.working.iterdir())
 
 
-def test_a_posting_the_server_says_no_to_is_not_asked_about(api, server, processor, workspace,
-                                                            capsys):
+def test_a_posting_the_server_says_no_to_is_not_asked_about(api, server, processor, workspace, capsys):
     api.is_jd = False
     intake, confirmer = build(api, server, processor)
 
@@ -46,8 +45,7 @@ def test_a_posting_the_server_says_no_to_is_not_asked_about(api, server, process
     assert "[clipboard] ✗ not a job description" in capsys.readouterr().out
 
 
-def test_a_failed_analysis_counts_and_says_which_request(api, server, processor, workspace,
-                                                         capsys):
+def test_a_failed_analysis_counts_and_says_which_request(api, server, processor, workspace, capsys):
     api.fail_on = "analyze"
     intake, confirmer = build(api, server, processor)
 
@@ -61,8 +59,7 @@ def test_a_failed_analysis_counts_and_says_which_request(api, server, processor,
 
 
 @pytest.mark.parametrize("where", ["cv", "discarded"])
-def test_a_posting_seen_before_is_not_asked_about(api, server, processor, workspace, capsys,
-                                                  where):
+def test_a_posting_seen_before_is_not_asked_about(api, server, processor, workspace, capsys, where):
     earlier = make_job(getattr(workspace, where) / day())
     intake, confirmer = build(api, server, processor)
 
@@ -72,8 +69,7 @@ def test_a_posting_seen_before_is_not_asked_about(api, server, processor, worksp
     assert str(earlier) in capsys.readouterr().out
 
 
-def test_a_posting_whose_cv_is_being_written_is_not_asked_about_twice(api, server, processor,
-                                                                      capsys):
+def test_a_posting_whose_cv_is_being_written_is_not_asked_about_twice(api, server, processor, capsys):
     intake, confirmer = build(api, server, processor, Decision(submit=True))
     intake.take(JD_TEXT, "clipboard")
     intake.take(JD_TEXT, "clipboard")
@@ -105,8 +101,7 @@ def test_yes_queues_its_cv_and_keeps_your_answer(api, server, processor, workspa
 
 
 def test_a_pasted_url_is_stored_in_the_analysis(api, server, processor, workspace):
-    intake, _ = build(api, server, processor,
-                      Decision(submit=True, url="https://jobs.example/42"))
+    intake, _ = build(api, server, processor, Decision(submit=True, url="https://jobs.example/42"))
     intake.take(JD_TEXT, "clipboard")
     [folder] = workspace.working_jobs()
     assert read_analysis(folder).posting_url == "https://jobs.example/42"
