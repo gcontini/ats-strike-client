@@ -45,6 +45,13 @@ def test_the_same_protocol_is_quiet(capsys):
     assert capsys.readouterr().err == ""
 
 
+def test_the_health_check_keeps_the_servers_version():
+    api = HttpApi("http://server.invalid", client=_client_reporting(2))
+    assert api.server_version == "?"
+    api._ensure_healthy()
+    assert api.server_version == "1.0.4"
+
+
 # --- requests and the CV session over HTTP ---------------------------------------
 STREAM = (
     b'id: 1\nevent: status\ndata: {"status": "started", "detail": ""}\n\n'

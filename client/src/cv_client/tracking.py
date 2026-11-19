@@ -43,6 +43,7 @@ HEADERS = (
     "application_date",
     "application status",
     "notes",
+    "generator",
     "webLink",
     "cv_path",
 )
@@ -63,7 +64,8 @@ class Tracker(Protocol):
     """Records a delivered job somewhere. Or not."""
 
     def record(
-        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None
+        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None,
+        generator: str = "",
     ) -> None: ...
 
 
@@ -71,7 +73,8 @@ class NullTracker:
     """Tracking off — ``--no-xlsx``."""
 
     def record(
-        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None
+        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None,
+        generator: str = "",
     ) -> None:
         return None
 
@@ -83,15 +86,18 @@ class XlsxTracker:
         self.xlsx_path = Path(xlsx_path)
 
     def record(
-        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None
+        self, job_dir: Path, analysis: JDAnalysis, cv: Optional[Path] = None,
+        generator: str = "",
     ) -> None:
-        """``cv`` is the delivered PDF, or ``None`` when only a letter was written."""
+        """``cv`` is the delivered PDF, or ``None`` when only a letter was written;
+        ``generator`` says what wrote it (``<server name>|<server version>``)."""
         values = {
             "company_name": _plain(analysis.company_name),
             "job_title": _plain(analysis.job_title),
             "application_date": date.today().isoformat(),
             "application status": STATUS_VALUES[0],
             "notes": "",
+            "generator": generator,
             "weblink": analysis.posting_url or "",
             "cv_path": str(cv) if cv else "",
         }

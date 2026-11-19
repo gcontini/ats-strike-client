@@ -74,13 +74,24 @@ class CvWriter:
     def pdf(self, folder: Path, written: Sequence[str]) -> Optional[Path]:
         """The PDF a spreadsheet row points at: the default server's when
         there is one, else the first written; ``None`` for a letter only."""
+        server = self._row_server(folder, written)
+        return JobFiles(folder, server).pdf() if server else None
+
+    def generator(self, folder: Path, written: Sequence[str]) -> str:
+        """What wrote the PDF the spreadsheet row points at: that server's
+        name and the version it runs, ``<name>|<version>``; empty for a
+        letter only."""
+        server = self._row_server(folder, written)
+        return f"{server.name}|{self.calls[server.name].api.server_version}" if server else ""
+
+    def _row_server(self, folder: Path, written: Sequence[str]) -> Optional[Server]:
         if self.config.cover_letter == "letter_only":
             return None
         servers = {server.name: server for server in self.config.servers()}
         default = [self.config.default.name] if self.config.default else []
         for name in default + list(written):
             if name in servers and JobFiles(folder, servers[name]).pdf().is_file():
-                return JobFiles(folder, servers[name]).pdf()
+                return servers[name]
         return None
 
     @staticmethod

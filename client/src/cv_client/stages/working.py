@@ -203,7 +203,8 @@ class WorkingProcessor:
         if record_row:
             try:
                 self.tracker.record(delivered, read_analysis(delivered),
-                                    self.writer.pdf(delivered, written))
+                                    self.writer.pdf(delivered, written),
+                                    self.writer.generator(delivered, written))
             except Exception as exc:
                 # The CV is delivered and was paid for; a broken or locked
                 # spreadsheet is bookkeeping, and must not undo that or stop

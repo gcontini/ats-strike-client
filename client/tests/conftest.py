@@ -138,6 +138,9 @@ def render_session() -> list:
 class FakeApi:
     """One server: records what it was asked and replies with whatever it was given."""
 
+    #: What the server reports as its version.
+    server_version = "9.9.9"
+
     def __init__(self, **replies):
         self.is_jd = replies.get("is_jd", True)
         self.analysis = replies.get("analysis", analysis())
@@ -176,7 +179,7 @@ class FakeApi:
         from cv_contracts import ServerStatus
 
         self._record("status")
-        return envelope(ServerStatus(status="ok", version="9.9.9", protocol=self.protocol,
+        return envelope(ServerStatus(status="ok", version=self.server_version, protocol=self.protocol,
                                      pdflatex=True, models={}, auth_required=False))
 
     def detect(self, job):

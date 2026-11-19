@@ -79,6 +79,9 @@ class CVError(RuntimeError):
 class CVApi(Protocol):
     """What the client needs an ats-strike server to do."""
 
+    #: The server's version, as its first health check reported it.
+    server_version: str
+
     def status(self) -> Envelope[ServerStatus]: ...
 
     def detect(self, job: Files) -> Envelope[Detection]: ...
@@ -115,6 +118,8 @@ class HttpApi:
     verbose: bool = False
     _client: httpx.Client = field(init=False, repr=False)
     _health_checked: bool = field(default=False, init=False, repr=False)
+    #: The server's version, once the health check has seen it.
+    server_version: str = field(default="?", init=False)
 
     def __post_init__(self) -> None:
         headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
@@ -213,6 +218,7 @@ class HttpApi:
                     f"the server at {self.base_url} speaks protocol {envelope.data.protocol}, "
                     f"this client speaks protocol {PROTOCOL}: refusing to talk to it"
                 )
+            self.server_version = envelope.data.version
             self._health_checked = True
             return
         raise CVError(

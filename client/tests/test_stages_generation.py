@@ -200,7 +200,7 @@ def test_a_job_the_server_refused_is_kept_under_error(processor, workspace, api)
 
 def test_a_broken_spreadsheet_costs_a_warning_and_not_the_cv(workspace, writer, console):
     class Broken:
-        def record(self, job_dir, analysis, cv=None):
+        def record(self, job_dir, analysis, cv=None, generator=""):
             raise RuntimeError("applications.xlsx has no date column")
 
     processor = WorkingProcessor(workspace, writer, Broken(), console)

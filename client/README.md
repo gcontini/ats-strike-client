@@ -5,7 +5,7 @@ dated folder with the posting, the analysis, the LaTeX source and a log of
 what it cost.
 
 `cv` is a single executable. It keeps your CV data on your machine and
-sends it, per request, to an [ats-strike server](https://github.com/gcontini/ats-strike/blob/main/server/README.md) that holds
+sends it, per request, to an [ats-strike server](https://github.com/gcontini/ats-strike/blob/main/doc/server.md) that holds
 the model API keys and the LaTeX toolchain — or to several, each writing its
 own CV of the same posting. You need no Python, no API key of your own and no
 LaTeX install (for the client).

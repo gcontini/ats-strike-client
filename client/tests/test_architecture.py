@@ -31,7 +31,7 @@ def imports_of(package: Path) -> Set[str]:
 def test_the_client_never_imports_the_server_or_the_pipeline():
     used = imports_of(CLIENT)
     assert "cv_contracts" in used, "the check must see the imports it is checking"
-    assert not used & {"cv_server", "cv_pipeline"}
+    assert not used & {"cv_server", "pipeline_v1"}
 
 
 def test_the_client_carries_no_server_side_dependency():

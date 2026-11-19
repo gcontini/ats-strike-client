@@ -290,9 +290,13 @@ def lanes(workspace, console, servers_dir, server):
     return processor, apis
 
 
-def cv_path(workspace):
+def row(workspace):
     sheet = openpyxl.load_workbook(workspace.root / "applications.xlsx").active
-    return dict(zip([c.value for c in sheet[1]], [c.value for c in sheet[2]]))["cv_path"]
+    return dict(zip([c.value for c in sheet[1]], [c.value for c in sheet[2]]))
+
+
+def cv_path(workspace):
+    return row(workspace)["cv_path"]
 
 
 def test_a_folder_goes_on_every_lane_and_is_delivered_once_all_have_written(lanes, workspace):
@@ -313,6 +317,7 @@ def test_a_folder_goes_on_every_lane_and_is_delivered_once_all_have_written(lane
     assert "  v11 2026-01-15T09:00:00 INFO    [cv.jd_evaluation]" in log
     assert "  v05 2026-01-15T09:00:00 INFO    [cv.jd_evaluation]" in log
     assert cv_path(workspace).endswith(f"{STEM}.pdf"), "the default server's"
+    assert row(workspace)["generator"] == "v11|9.9.9", "the default server's name and version"
     assert processor.failures == 0
 
 
@@ -327,6 +332,7 @@ def test_one_lane_failing_still_delivers_and_counts(lanes, workspace):
     assert "✗ v11: model_output [create_cv]" in (delivered / "log.log").read_text()
     assert processor.failures == 1, "the exit code says so"
     assert cv_path(workspace).endswith(f"{STEM}_v05.pdf"), "no default PDF: the first written"
+    assert row(workspace)["generator"] == "v05|9.9.9", "whoever wrote the PDF the row points at"
 
 
 def test_every_lane_failing_files_it_under_error(lanes, workspace):
