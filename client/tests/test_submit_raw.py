@@ -101,3 +101,20 @@ def test_a_failed_job_is_reported_with_its_request_id(here, config, api, apis, c
     with pytest.raises(SystemExit):
         submit_raw.run(config, here, [])
     assert "failed-request" in capsys.readouterr().err
+
+
+def test_what_the_server_keeps_in_cache_lands_in_the_server_folder_even_when_the_job_fails(here, server, config, apis):
+    """A server that builds its cache over several jobs (2.0's store) continues on the next run."""
+    from cv_contracts import Failure, Status, StoreItem
+
+    apis["http://v11.invalid"].session = [
+        ("status", Status(status="started")),
+        ("store", StoreItem.from_content("CACHE", "step", "items.json", '{"items": []}')),
+        ("store", StoreItem.from_content("CACHE", "step", "../escape.json", "{}")),
+        ("error", Failure(http_status=504, error="budget_exceeded [Skill tree]: Run this job again to continue.")),
+    ]
+    with pytest.raises(SystemExit):
+        submit_raw.run(config, here, [])
+    assert (server.folder / "cache" / "items.json").read_text() == '{"items": []}'
+    assert not (server.folder / "escape.json").exists()
+    assert sorted(p.name for p in here.parent.iterdir()) == ["posting.txt"]

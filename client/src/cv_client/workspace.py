@@ -98,6 +98,28 @@ def _clear(path: Path) -> None:
         path.unlink(missing_ok=True)
 
 
+def store_cache(server: Server, item: StoreItem) -> Optional[Path]:
+    """Keep one ``CACHE`` item in the server folder's ``cache/``: a ``step`` as
+    ``cache/<name>``, a ``log`` appended to ``cache/log.log``. The file written;
+    ``None`` for any other type, or a name that would leave ``cache/``.
+
+    What a server keeps there belongs to the server folder, not to a job: it is
+    sent back with every request, whatever command wrote it.
+    """
+    cache = server.folder / CACHE_DIRNAME
+    if item.type == "log":
+        cache.mkdir(exist_ok=True)
+        with (cache / LOG_FILENAME).open("ab") as fh:
+            fh.write(item.content() + b"\n")
+        return cache / LOG_FILENAME
+    if item.type != "step" or not _safe(item.name):
+        return None
+    target = cache / item.name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(item.content())
+    return target
+
+
 @dataclass(frozen=True)
 class Artifacts:
     """What a finished job folder is called: your name and the job title."""
@@ -178,19 +200,16 @@ class JobFiles:
             return None
         if where == ("CV", "cv"):
             return self._pdf(item, log)
-        if where == ("CACHE", "log"):
-            cache = self.server.folder / CACHE_DIRNAME
-            cache.mkdir(exist_ok=True)
-            with (cache / LOG_FILENAME).open("ab") as fh:
-                fh.write(item.content() + b"\n")
-            return cache / LOG_FILENAME
-        bases = {("CV", "step"): self.own, ("CACHE", "step"): self.server.folder / CACHE_DIRNAME}
-        if where not in bases or not _safe(item.name):
+        if item.location == "CACHE":
+            target = store_cache(self.server, item)
+        elif where == ("CV", "step") and _safe(item.name):
+            target = self.own / item.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(item.content())
+        else:
+            target = None
+        if target is None:
             log.step(f"⚠ {self.server.name}: skipped a {item.location}/{item.type} item named {item.name!r}")
-            return None
-        target = bases[where] / item.name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(item.content())
         return target
 
     def _pdf(self, item: StoreItem, log: JobLog) -> Path:
@@ -310,6 +329,7 @@ __all__ = [
     "Workspace",
     "Artifacts",
     "JobFiles",
+    "store_cache",
     "sanitize_name",
     "job_name",
     "staged_job",

@@ -3,7 +3,9 @@
 Nothing but the CV: no detection, no analysis, no question before spending,
 no cover letter, no spreadsheet and no folder structure. What you get is what
 you asked for with ``-o``, written where you are standing, by the
-``--server_ver`` server or else the default.
+``--server_ver`` server or else the default. What the server keeps in the
+server folder's ``cache/`` is kept there too, as by every other command: a
+server that builds its cache over several jobs continues on the next run.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from ..api import CVError
 from ..config import Config
 from ..cvjob import JD_FILE, write_cv
 from ..ui import fail
+from ..workspace import store_cache
 from . import connect
 
 #: What ``-o`` understands, and the item each takes: the suffix is the whole
@@ -44,6 +47,10 @@ def run(config: Config, jd_file: Path, outputs: List[Path], *, new: bool = False
         if (item.location, item.type) == ("CV", "log"):
             if config.verbose:
                 print(f"  {server.name} {item.text}", flush=True)
+            return
+        if item.location == "CACHE":
+            if store_cache(server, item) is None:
+                print(f"⚠ {server.name}: skipped a CACHE/{item.type} item named {item.name!r}", flush=True)
             return
         if item.location != "CV":
             return

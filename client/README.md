@@ -146,7 +146,9 @@ cv submit-raw posting.txt -o cv.pdf -o cv.json -o cv.tex
 The CV and nothing else: no detection, no analysis, no question before
 spending, no cover letter, no spreadsheet, no folders. Files land in the
 directory you are standing in. One server writes it: the default, or the one
-`--server_ver` names.
+`--server_ver` names. What the server keeps in its folder's `cache/` (the 2.0
+server's store) is kept there as by every other command, so a run that ends
+before the CV is continued by the next.
 
 `-o` is repeatable and the suffix is the whole instruction — `.pdf` writes the
 PDF, `.json` the document, `.tex` the LaTeX. A name you chose is overwritten
